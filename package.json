@@ -1,0 +1,86 @@
+{
+  "name": "next_nice_datatable",
+  "version": "1.0.0",
+  "description": "A comprehensive, feature-rich DataTable component for Next.js and React applications with Material-UI",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    },
+    "./styles.css": "./dist/styles.css"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "lint": "eslint src --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "type-check": "tsc --noEmit",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "react",
+    "nextjs",
+    "next.js",
+    "datatable",
+    "data-table",
+    "table",
+    "datagrid",
+    "data-grid",
+    "mui",
+    "material-ui",
+    "typescript",
+    "pagination",
+    "sorting",
+    "filtering",
+    "search",
+    "export",
+    "csv",
+    "excel",
+    "pdf",
+    "responsive",
+    "accessible",
+    "component"
+  ],
+  "author": "StellarX Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/stellarx57/next_nice_datatable.git"
+  },
+  "bugs": {
+    "url": "https://github.com/stellarx57/next_nice_datatable/issues"
+  },
+  "homepage": "https://github.com/stellarx57/next_nice_datatable#readme",
+  "peerDependencies": {
+    "@mui/icons-material": "^5.0.0 || ^6.0.0",
+    "@mui/material": "^5.0.0 || ^6.0.0",
+    "react": "^18.0.0 || ^19.0.0",
+    "react-dom": "^18.0.0 || ^19.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "@types/react": "^18.2.48",
+    "@types/react-dom": "^18.2.18",
+    "@typescript-eslint/eslint-plugin": "^6.19.0",
+    "@typescript-eslint/parser": "^6.19.0",
+    "eslint": "^8.56.0",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "eslint-plugin-react-refresh": "^0.4.5",
+    "tsup": "^8.0.1",
+    "typescript": "^5.3.3"
+  },
+  "dependencies": {
+    "jspdf": "^2.5.1",
+    "jspdf-autotable": "^3.8.2",
+    "xlsx": "^0.18.5"
+  }
+}
+

@@ -1,0 +1,31 @@
+# Source files
+src/
+
+# Config files
+tsconfig.json
+tsup.config.ts
+.eslintrc.cjs
+.prettierrc
+
+# Git
+.git
+.gitignore
+
+# CI/CD
+.github/
+
+# Development
+node_modules/
+*.log
+.DS_Store
+
+# Tests
+**/*.test.ts
+**/*.test.tsx
+**/*.spec.ts
+**/*.spec.tsx
+coverage/
+
+# Documentation (keep only what's needed)
+docs/examples/
+
