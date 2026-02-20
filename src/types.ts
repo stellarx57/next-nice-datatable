@@ -1,9 +1,9 @@
 /**
  * Next Nice DataTable - Type Definitions
  * A comprehensive, reusable data table component
- * 
+ *
  * @author Stellarx Team
- * @version 1.0.0
+ * @version 2.0.0
  * @license MIT
  */
 
@@ -13,526 +13,345 @@ import { ReactNode } from 'react';
 // COLUMN TYPES
 // ============================================================================
 
-/**
- * Column alignment options
- */
 export type ColumnAlign = 'left' | 'center' | 'right';
-
-/**
- * Sort direction
- */
 export type SortDirection = 'asc' | 'desc' | null;
 
-/**
- * Filter operator types
- */
-export type FilterOperator = 
-  | 'equals' 
-  | 'contains' 
-  | 'startsWith' 
-  | 'endsWith' 
-  | 'greaterThan' 
-  | 'lessThan' 
+export type FilterOperator =
+  | 'equals'
+  | 'contains'
+  | 'startsWith'
+  | 'endsWith'
+  | 'greaterThan'
+  | 'lessThan'
   | 'between'
   | 'isEmpty'
   | 'isNotEmpty';
 
-/**
- * Column filter definition
- */
 export interface ColumnFilter {
-  value: string | number | boolean | [any, any];
+  value: string | number | boolean | [unknown, unknown];
   operator: FilterOperator;
 }
 
-/**
- * Column definition for the data table
- */
-export interface DataTableColumn<T = any> {
-  /** Unique identifier for the column (typically matches data key) */
+export interface DataTableColumn<T = unknown> {
+  /** Unique identifier for the column (typically matches data key). Dot-notation for nested paths. */
   id: string;
   /** Display label for column header */
   label: string;
-  /** Minimum width of the column in pixels */
   minWidth?: number;
-  /** Maximum width of the column in pixels */
   maxWidth?: number;
-  /** Fixed width of the column in pixels */
   width?: number;
-  /** Text alignment */
   align?: ColumnAlign;
-  /** Whether the column is sortable */
   sortable?: boolean;
-  /** Whether the column is filterable */
   filterable?: boolean;
-  /** Whether the column is searchable (included in global search) */
+  /** Whether this column participates in client-side full-text search */
   searchable?: boolean;
-  /** Whether to hide this column on mobile devices */
   hiddenOnMobile?: boolean;
-  /** Whether to hide this column on tablet devices */
   hiddenOnTablet?: boolean;
-  /** Whether the column is hidden (but can be shown via column visibility) */
+  /** Whether the column starts hidden (toggle via column-visibility menu) */
   hidden?: boolean;
-  /** Whether to include this column in exports */
+  /** Whether this column is included in exports */
   exportable?: boolean;
-  /** Custom format function for display */
-  format?: (value: any, row: T, rowIndex: number) => ReactNode;
-  /** Custom format function for export (returns string) */
-  exportFormat?: (value: any, row: T, rowIndex: number) => string;
-  /** Header render function for custom header content */
+  /** Custom render function for table cells */
+  format?: (value: unknown, row: T, rowIndex: number) => ReactNode;
+  /** Custom render for exports – must return a plain string */
+  exportFormat?: (value: unknown, row: T, rowIndex: number) => string;
   renderHeader?: (column: DataTableColumn<T>) => ReactNode;
-  /** Filter type for this column */
   filterType?: 'text' | 'number' | 'select' | 'date' | 'boolean';
-  /** Options for select filter type */
-  filterOptions?: { value: any; label: string }[];
-  /** CSS class name for the column */
+  filterOptions?: { value: unknown; label: string }[];
   className?: string;
-  /** Whether this column is sticky (fixed position) */
   sticky?: 'left' | 'right';
-  /** Tooltip for column header */
+  /** Tooltip displayed on the column header */
   tooltip?: string;
 }
 
 // ============================================================================
-// PAGINATION TYPES
+// PAGINATION
 // ============================================================================
 
-/**
- * Pagination state
- */
 export interface PaginationState {
-  /** Current page number (0-indexed) */
   page: number;
-  /** Number of rows per page */
   rowsPerPage: number;
-  /** Total number of items */
   totalCount: number;
-  /** Total number of pages */
   totalPages: number;
 }
 
-/**
- * Pagination configuration
- */
 export interface PaginationConfig {
-  /** Default number of rows per page */
   defaultRowsPerPage?: number;
-  /** Available options for rows per page selector */
   rowsPerPageOptions?: number[];
-  /** Whether to show the rows per page selector */
   showRowsPerPageSelector?: boolean;
-  /** Whether to show first/last page buttons */
   showFirstLastButtons?: boolean;
-  /** Whether to show page numbers */
   showPageNumbers?: boolean;
-  /** Maximum number of page buttons to show */
   maxPageButtons?: number;
-  /** Label for rows per page selector */
+  /** Label shown before the rows-per-page selector */
   rowsPerPageLabel?: string;
-  /** Position of pagination */
   position?: 'top' | 'bottom' | 'both';
 }
 
 // ============================================================================
-// SORTING TYPES
+// SORTING
 // ============================================================================
 
-/**
- * Sort state
- */
 export interface SortState {
-  /** Column ID to sort by */
   column: string | null;
-  /** Sort direction */
   direction: SortDirection;
 }
 
-/**
- * Sort configuration
- */
 export interface SortConfig {
-  /** Default sort column */
   defaultColumn?: string;
-  /** Default sort direction */
   defaultDirection?: SortDirection;
-  /** Whether to allow multi-column sorting */
-  multiSort?: boolean;
-  /** Maximum columns for multi-sort */
-  maxSortColumns?: number;
 }
 
 // ============================================================================
-// FILTER TYPES
+// COLUMN FILTERS
 // ============================================================================
 
-/**
- * Filter state (column ID -> filter value)
- */
 export interface FilterState {
   [columnId: string]: ColumnFilter;
 }
 
-/**
- * Filter configuration
- */
 export interface FilterConfig {
-  /** Whether to show filter row */
+  /** Show the per-column inline filter row below the header */
   showFilterRow?: boolean;
-  /** Debounce time for filter input (ms) */
   filterDebounceMs?: number;
-  /** Filter mode: 'client' for client-side, 'server' for server-side */
   filterMode?: 'client' | 'server';
 }
 
 // ============================================================================
-// FILTER (CLIENT-SIDE) TYPES
+// CLIENT-SIDE FILTER
 // ============================================================================
 
-/**
- * Client-side filter configuration (full-text filtering on loaded data)
- */
 export interface ClientFilterConfig {
-  /** Whether to show client-side filter */
   enabled?: boolean;
-  /** Placeholder text for filter input */
   placeholder?: string;
-  /** Debounce time for filter input (ms) */
   debounceMs?: number;
 }
 
 // ============================================================================
-// SEARCH (SERVER-SIDE) TYPES
+// ADVANCED / SERVER-SIDE SEARCH
 // ============================================================================
 
-/**
- * Server-side search field selection
- */
 export interface SearchField {
-  /** Field/column ID */
   id: string;
-  /** Display label */
   label: string;
 }
 
-/**
- * Search operator types for advanced search
- */
 export type SearchOperator = 'CONTAINS' | 'EQUALS' | 'STARTS_WITH' | 'ENDS_WITH';
 
-/**
- * Single search criterion for advanced search
- */
 export interface SearchCriteria {
-  /** Unique identifier for the criterion */
   id: string;
-  /** Field/column ID to search in */
   field: string;
-  /** Search value */
   value: string;
-  /** Search operator */
   operator: SearchOperator;
 }
 
-/**
- * Advanced search state (for complex database queries)
- */
 export interface AdvancedSearchState {
-  /** Array of search criteria */
   criteria: SearchCriteria[];
-  /** Whether all criteria must match (AND) or any (OR) */
   matchAll: boolean;
 }
 
-/**
- * Server-side search state (simple single-term search)
- * @deprecated Use AdvancedSearchState for complex searches
- */
+/** @deprecated Use AdvancedSearchState with onAdvancedSearch instead */
 export interface ServerSearchState {
-  /** Search term */
   term: string;
-  /** Selected fields to search in */
   fields: string[];
 }
 
-/**
- * Server-side search configuration (database search)
- */
 export interface SearchConfig {
-  /** Whether to show server-side search */
   enabled?: boolean;
-  /** Placeholder text for search input */
   placeholder?: string;
-  /** Debounce time for search input (ms) */
   debounceMs?: number;
-  /** Minimum characters to trigger search */
   minCharacters?: number;
-  /** Available fields for search selection */
   searchableFields?: SearchField[];
-  /** Whether to allow multiple field selection */
   multipleFields?: boolean;
-  /** Default fields to search in */
   defaultFields?: string[];
-  /** Default field for advanced search dialog */
   defaultSearchField?: string;
-  /** Maximum number of search criteria allowed */
   maxCriteria?: number;
-  /** Title for the advanced search dialog */
+  /** Title shown in the advanced-search dialog */
   dialogTitle?: string;
 }
 
 // ============================================================================
-// EXPORT TYPES
+// EXPORT
 // ============================================================================
 
-/**
- * Export format types
- */
 export type ExportFormat = 'csv' | 'excel' | 'pdf' | 'word';
 
-/**
- * Export configuration
- */
 export interface ExportConfig {
-  /** Whether to enable export functionality */
   enabled?: boolean;
-  /** Allowed export formats */
+  /** Allowed export formats shown in the menu */
   formats?: ExportFormat[] | readonly ExportFormat[];
-  /** Default filename for exports (without extension) */
+  /** Base filename without extension */
   filename?: string;
-  /** Document title for PDF/Word exports */
+  /** Document title (used in PDF / Word headers) */
   title?: string;
-  /** Document subtitle/description */
   subtitle?: string;
-  /** Whether to include headers in export */
   includeHeaders?: boolean;
-  /** Whether to include only visible columns */
+  /** Export only currently visible columns */
   visibleColumnsOnly?: boolean;
-  /** Whether to include only filtered data */
+  /** Export only data that survives the current client-side filter */
   filteredDataOnly?: boolean;
-  /** Custom header for PDF/Word */
+  /**
+   * Custom HTML injected into the PDF / Word header section.
+   * NOTE: This value is HTML-escaped before insertion; plain text only.
+   * For styled HTML pass `customHeaderHtml` with `allowUnsafeHtml: true`.
+   */
   customHeader?: string;
-  /** Custom footer for PDF/Word */
+  /**
+   * Custom HTML injected into the PDF / Word footer section.
+   * NOTE: This value is HTML-escaped before insertion; plain text only.
+   */
   customFooter?: string;
-  /** Page orientation for PDF */
+  /**
+   * When true, customHeader / customFooter are treated as trusted raw HTML
+   * and inserted without escaping. Only set this if the values come from a
+   * trusted, server-controlled source — never from user input.
+   */
+  allowUnsafeHtml?: boolean;
   pdfOrientation?: 'portrait' | 'landscape';
-  /** Page size for PDF */
   pdfPageSize?: 'a4' | 'letter' | 'legal';
+  /** Label for the export button (default: "Export") */
+  buttonLabel?: string;
 }
 
 // ============================================================================
-// STYLING TYPES
+// STYLING
 // ============================================================================
 
-/**
- * Stripe configuration
- */
 export interface StripeConfig {
-  /** Whether to show striped rows */
   enabled?: boolean;
-  /** Color for odd rows */
   oddRowColor?: string;
-  /** Color for even rows */
   evenRowColor?: string;
 }
 
-/**
- * Style configuration
- */
 export interface StyleConfig {
-  /** Stripe configuration */
   stripe?: StripeConfig;
-  /** Whether to show row hover effect */
   hoverEffect?: boolean;
-  /** Hover background color */
   hoverColor?: string;
-  /** Border style */
   borderStyle?: 'none' | 'horizontal' | 'vertical' | 'all';
-  /** Border color */
   borderColor?: string;
-  /** Header background color */
   headerBackgroundColor?: string;
-  /** Header text color */
   headerTextColor?: string;
-  /** Row height: 'compact', 'normal', 'comfortable' */
   density?: 'compact' | 'normal' | 'comfortable';
-  /** Whether to show shadow/elevation */
   elevation?: boolean;
-  /** Whether to make table rounded */
   rounded?: boolean;
-  /** Custom CSS class for the table container */
   containerClassName?: string;
-  /** Custom CSS class for the table */
   tableClassName?: string;
 }
 
 // ============================================================================
-// SELECTION TYPES
+// SELECTION
 // ============================================================================
 
-/**
- * Selection configuration
- */
 export interface SelectionConfig {
-  /** Whether to enable row selection */
   enabled?: boolean;
-  /** Selection mode */
   mode?: 'single' | 'multiple';
-  /** Whether to show select all checkbox */
   showSelectAll?: boolean;
-  /** Key field for identifying rows */
   rowKeyField?: string;
-  /** Whether double-click selects only the clicked row (deselects others) */
   doubleClickSelectsOnly?: boolean;
+  /**
+   * 'page' – select-all covers only the rows on the current page (default).
+   * 'all'  – select-all covers every row in the loaded dataset.
+   */
+  selectAllScope?: 'page' | 'all';
 }
 
 // ============================================================================
-// TOOLBAR CONFIGURATION
+// TOOLBAR
 // ============================================================================
 
-/**
- * Toolbar visibility configuration
- */
 export interface ToolbarConfig {
-  /** Whether to show the filter input */
+  /** Show the client-side filter input */
   showFilter?: boolean;
-  /** Whether to show the advanced search button */
+  /** Show the advanced-search button */
   showAdvancedSearch?: boolean;
-  /** Whether to show the refresh button */
+  /** Show the refresh icon button */
   showRefresh?: boolean;
-  /** Whether to show the density toggle */
+  /** Show the density-toggle icon button */
   showDensityToggle?: boolean;
-  /** Whether to show column visibility toggle */
+  /** Show the column-visibility icon button */
   showColumnVisibility?: boolean;
-  /** Whether to show export button */
+  /** Show the export button / menu */
   showExport?: boolean;
-  /** Whether to show title and subtitle */
+  /** Show the title / subtitle in the toolbar */
   showTitle?: boolean;
+  /** Label for the refresh button tooltip */
+  refreshLabel?: string;
+  /** Label for the density-toggle button tooltip */
+  densityLabel?: string;
+  /** Label for the column-visibility button tooltip */
+  columnVisibilityLabel?: string;
+  /** Label for the advanced-search button */
+  advancedSearchLabel?: string;
+  /** Heading of the toggle-columns menu */
+  columnMenuTitle?: string;
 }
 
 // ============================================================================
-// ACTION BUTTON TYPES
+// ACTION BUTTONS
 // ============================================================================
 
-/**
- * Action button configuration for CRUD operations
- */
 export interface ActionButtonConfig {
-  /** Whether the Add button is shown */
   showAdd?: boolean;
-  /** Whether the View button is shown */
   showView?: boolean;
-  /** Whether the Edit button is shown */
   showEdit?: boolean;
-  /** Whether the Delete button is shown */
   showDelete?: boolean;
-  /** Whether the Add button is enabled (default: true) */
   addEnabled?: boolean;
-  /** Whether the View button is enabled (default: true, disabled with multiple selection) */
   viewEnabled?: boolean;
-  /** Whether the Edit button is enabled (default: true, disabled with multiple selection) */
   editEnabled?: boolean;
-  /** Whether the Delete button is enabled (default: true, disabled with multiple selection) */
   deleteEnabled?: boolean;
-  /** Label for Add button */
+  /** Text shown on the Add button */
   addLabel?: string;
-  /** Label for View button */
+  /** Text shown on the View button */
   viewLabel?: string;
-  /** Label for Edit button */
+  /** Text shown on the Edit button */
   editLabel?: string;
-  /** Label for Delete button */
+  /** Text shown on the Delete / Archive button */
   deleteLabel?: string;
+  /** Tooltip override for the Add button */
+  addTooltip?: string;
+  /** Tooltip override for the View button */
+  viewTooltip?: string;
+  /** Tooltip override for the Edit button */
+  editTooltip?: string;
+  /** Tooltip override for the Delete button */
+  deleteTooltip?: string;
+  /** MUI color for the Add button */
+  addColor?: 'primary' | 'secondary' | 'success' | 'error' | 'warning' | 'info' | 'inherit';
+  /** MUI color for the View button */
+  viewColor?: 'primary' | 'secondary' | 'success' | 'error' | 'warning' | 'info' | 'inherit';
+  /** MUI color for the Edit button */
+  editColor?: 'primary' | 'secondary' | 'success' | 'error' | 'warning' | 'info' | 'inherit';
+  /** MUI color for the Delete button */
+  deleteColor?: 'primary' | 'secondary' | 'success' | 'error' | 'warning' | 'info' | 'inherit';
 }
 
 // ============================================================================
-// CALLBACK TYPES
+// CALLBACKS
 // ============================================================================
 
-/**
- * Callback when page changes
- */
 export type OnPageChangeCallback = (page: number) => void | Promise<void>;
-
-/**
- * Callback when rows per page changes
- */
 export type OnRowsPerPageChangeCallback = (rowsPerPage: number) => void | Promise<void>;
-
-/**
- * Callback when sort changes
- */
 export type OnSortChangeCallback = (sort: SortState) => void | Promise<void>;
-
-/**
- * Callback when filter changes
- */
 export type OnFilterChangeCallback = (filters: FilterState) => void | Promise<void>;
-
-/**
- * Callback when client filter changes
- */
 export type OnClientFilterChangeCallback = (filterTerm: string) => void | Promise<void>;
-
-/**
- * Callback when server search changes
- */
 export type OnServerSearchChangeCallback = (search: ServerSearchState) => void | Promise<void>;
-
-/**
- * Callback when advanced search is performed
- */
 export type OnAdvancedSearchCallback = (search: AdvancedSearchState) => void | Promise<void>;
-
-/**
- * @deprecated Use OnClientFilterChangeCallback instead
- */
+/** @deprecated Use OnClientFilterChangeCallback */
 export type OnSearchChangeCallback = (searchTerm: string) => void | Promise<void>;
-
-/**
- * Callback when selection changes
- */
 export type OnSelectionChangeCallback<T> = (selectedRows: T[]) => void;
-
-/**
- * Callback when row is clicked
- */
 export type OnRowClickCallback<T> = (row: T, rowIndex: number, event: React.MouseEvent) => void;
-
-/**
- * Callback when row is double-clicked
- */
 export type OnRowDoubleClickCallback<T> = (row: T, rowIndex: number, event: React.MouseEvent) => void;
-
-/**
- * Callback for Add action button
- */
 export type OnAddCallback = () => void;
-
-/**
- * Callback for Edit action button
- */
 export type OnEditCallback<T> = (row: T) => void;
-
-/**
- * Callback for Delete action button
- */
 export type OnDeleteCallback<T> = (row: T) => void;
-
-/**
- * Callback for View action button
- */
 export type OnViewCallback<T> = (row: T) => void;
 
-/**
- * Callback for fetching data (server-side)
- */
 export interface FetchDataParams {
   page: number;
   rowsPerPage: number;
   sort: SortState;
   filters: FilterState;
-  /** Server-side search state (simple) */
+  /** @deprecated Use advancedSearch */
   search: ServerSearchState;
-  /** Advanced search state (complex multi-field search) */
   advancedSearch?: AdvancedSearchState;
 }
 
@@ -542,187 +361,123 @@ export type OnFetchDataCallback<T> = (params: FetchDataParams) => Promise<{
 }>;
 
 // ============================================================================
-// MAIN PROPS TYPE
+// MAIN PROPS
 // ============================================================================
 
-/**
- * Main DataTable props
- */
-export interface DataTableProps<T = any> {
-  // === DATA ===
-  /** Data array to display (for client-side mode) */
+export interface DataTableProps<T = unknown> {
+  // --- DATA ---
   data?: T[];
-  /** Column definitions */
   columns: DataTableColumn<T>[];
-  /** Unique key field for rows */
   rowKeyField?: string;
-  /** Loading state */
   loading?: boolean;
-  /** Error message to display */
   error?: string | null;
-  /** Empty state message */
   emptyMessage?: string;
-  /** Empty state component */
   emptyComponent?: ReactNode;
 
-  // === PAGINATION ===
-  /** Total count for server-side pagination */
+  // --- PAGINATION ---
   totalCount?: number;
-  /** Current page (controlled) */
   page?: number;
-  /** Rows per page (controlled) */
   rowsPerPage?: number;
-  /** Pagination configuration */
   pagination?: PaginationConfig;
 
-  // === SORTING ===
-  /** Current sort state (controlled) */
+  // --- SORTING ---
   sort?: SortState;
-  /** Sort configuration */
   sortConfig?: SortConfig;
 
-  // === COLUMN FILTERING ===
-  /** Current column filter state (controlled) */
+  // --- COLUMN FILTERING ---
   filters?: FilterState;
-  /** Column filter configuration */
   filterConfig?: FilterConfig;
 
-  // === CLIENT-SIDE FILTER (Full-text on loaded data) ===
-  /** Current client filter term (controlled) */
+  // --- CLIENT-SIDE FILTER ---
   clientFilterTerm?: string;
-  /** Client-side filter configuration */
   clientFilterConfig?: ClientFilterConfig;
 
-  // === SERVER-SIDE SEARCH (Database search with field selection) ===
-  /** Current server search state (controlled) */
+  // --- SERVER / ADVANCED SEARCH ---
+  /** @deprecated Use advancedSearch */
   serverSearch?: ServerSearchState;
-  /** Current advanced search state (controlled) */
   advancedSearch?: AdvancedSearchState;
-  /** Server-side search configuration */
   searchConfig?: SearchConfig;
 
-  // === LEGACY: searchTerm (deprecated, use clientFilterTerm) ===
-  /** @deprecated Use clientFilterTerm instead */
+  // --- LEGACY ---
+  /** @deprecated Use clientFilterTerm */
   searchTerm?: string;
 
-  // === EXPORT ===
-  /** Export configuration */
+  // --- EXPORT ---
   exportConfig?: ExportConfig;
 
-  // === STYLING ===
-  /** Style configuration */
+  // --- STYLING ---
   styleConfig?: StyleConfig;
 
-  // === SELECTION ===
-  /** Selection configuration */
+  // --- SELECTION ---
   selectionConfig?: SelectionConfig;
-  /** Currently selected rows (controlled) */
   selectedRows?: T[];
 
-  // === TOOLBAR ===
-  /** Toolbar visibility configuration */
+  // --- TOOLBAR ---
   toolbarConfig?: ToolbarConfig;
 
-  // === ACTION BUTTONS ===
-  /** Action button configuration (Add, Edit, Delete) */
+  // --- ACTION BUTTONS ---
   actionButtons?: ActionButtonConfig;
 
-  // === CALLBACKS ===
-  /** Callback when page changes */
+  // --- CALLBACKS ---
   onPageChange?: OnPageChangeCallback;
-  /** Callback when rows per page changes */
   onRowsPerPageChange?: OnRowsPerPageChangeCallback;
-  /** Callback when sort changes */
   onSortChange?: OnSortChangeCallback;
-  /** Callback when column filters change */
   onFilterChange?: OnFilterChangeCallback;
-  /** Callback when client-side filter changes */
   onClientFilterChange?: OnClientFilterChangeCallback;
-  /** Callback when server-side search changes */
   onServerSearchChange?: OnServerSearchChangeCallback;
-  /** Callback when advanced search is performed */
   onAdvancedSearch?: OnAdvancedSearchCallback;
-  /** @deprecated Use onClientFilterChange instead */
+  /** @deprecated Use onClientFilterChange */
   onSearchChange?: OnSearchChangeCallback;
-  /** Callback when selection changes */
   onSelectionChange?: OnSelectionChangeCallback<T>;
-  /** Callback when row is clicked */
   onRowClick?: OnRowClickCallback<T>;
-  /** Callback when row is double-clicked */
   onRowDoubleClick?: OnRowDoubleClickCallback<T>;
-  /** Callback for fetching data (server-side mode) */
   onFetchData?: OnFetchDataCallback<T>;
-  /** Callback when refresh is clicked */
   onRefresh?: () => void;
-  /** Callback when Add button is clicked */
   onAdd?: OnAddCallback;
-  /** Callback when View button is clicked */
   onView?: OnViewCallback<T>;
-  /** Callback when Edit button is clicked */
   onEdit?: OnEditCallback<T>;
-  /** Callback when Delete button is clicked */
   onDelete?: OnDeleteCallback<T>;
 
-  // === TOOLBAR ===
-  /** Title to display in toolbar */
+  // --- TOOLBAR SHORTHAND PROPS (merged into toolbarConfig internally) ---
   title?: string;
-  /** Subtitle/description */
   subtitle?: string;
-  /** Custom toolbar actions */
   toolbarActions?: ReactNode;
-  /** Whether to show column visibility toggle */
   showColumnVisibility?: boolean;
-  /** Whether to show refresh button */
   showRefresh?: boolean;
-  /** Whether to show density toggle */
   showDensityToggle?: boolean;
-  /** Whether to show add button */
+
+  // --- ACTION BUTTON SHORTHAND PROPS (merged into actionButtons internally) ---
   showAdd?: boolean;
-  /** Whether to show view button */
   showView?: boolean;
-  /** Whether to show edit button */
   showEdit?: boolean;
-  /** Whether to show delete button */
   showDelete?: boolean;
-  /** Label for delete button (e.g., "Archive", "Delete") */
+  /** @deprecated Use actionButtons.deleteLabel */
   deleteLabel?: string;
-  /** Whether add button is enabled */
   addEnabled?: boolean;
-  /** Whether view button is enabled */
   viewEnabled?: boolean;
-  /** Whether edit button is enabled */
   editEnabled?: boolean;
-  /** Whether delete button is enabled */
   deleteEnabled?: boolean;
 
-  // === MISC ===
-  /** ID for the table (for accessibility) */
+  // --- ACCESSIBILITY ---
   id?: string;
-  /** ARIA label for the table */
   ariaLabel?: string;
-  /** Test ID for testing */
   testId?: string;
 }
 
 // ============================================================================
-// STATE TYPES
+// INTERNAL STATE
 // ============================================================================
 
-/**
- * Internal state of the DataTable
- */
-export interface DataTableState<T = any> {
+export interface DataTableState<T = unknown> {
   data: T[];
   loading: boolean;
   error: string | null;
   pagination: PaginationState;
   sort: SortState;
   filters: FilterState;
-  /** Client-side filter term (for full-text filtering on loaded data) */
   clientFilterTerm: string;
-  /** Server-side search state (for database search with field selection) */
+  /** @deprecated */
   serverSearch: ServerSearchState;
-  /** Advanced search state (for complex multi-field database search) */
   advancedSearch: AdvancedSearchState;
   selectedRows: T[];
   visibleColumns: string[];

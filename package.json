@@ -1,7 +1,7 @@
 {
-  "name": "next_nice_datatable",
-  "version": "1.0.0",
-  "description": "A comprehensive, feature-rich DataTable component for Next.js and React applications with Material-UI",
+  "name": "next-nice-datatable",
+  "version": "2.0.0",
+  "description": "A comprehensive, feature-rich, security-hardened DataTable component for Next.js and React applications with Material-UI",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
@@ -53,12 +53,12 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/stellarx57/next_nice_datatable.git"
+    "url": "https://github.com/stellarx57/next-nice-datatable.git"
   },
   "bugs": {
-    "url": "https://github.com/stellarx57/next_nice_datatable/issues"
+    "url": "https://github.com/stellarx57/next-nice-datatable/issues"
   },
-  "homepage": "https://github.com/stellarx57/next_nice_datatable#readme",
+  "homepage": "https://github.com/stellarx57/next-nice-datatable#readme",
   "peerDependencies": {
     "@mui/icons-material": "^5.0.0 || ^6.0.0",
     "@mui/material": "^5.0.0 || ^6.0.0",

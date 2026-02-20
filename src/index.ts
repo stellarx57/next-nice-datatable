@@ -1,17 +1,16 @@
 /**
  * Next Nice DataTable - Main Entry Point
- * A comprehensive, feature-rich DataTable component for Next.js and React
- * 
+ *
  * @author Stellarx Team
- * @version 1.0.0
+ * @version 2.0.0
  * @license MIT
  */
 
-// Main component
+// Main components
 export { default as DataTable } from './DataTable';
 export { default as SearchDialog } from './SearchDialog';
 
-// Custom hooks
+// Custom hook
 export { useDataTable } from './useDataTable';
 
 // Types
@@ -21,21 +20,21 @@ export type {
   ColumnAlign,
   ColumnFilter,
   FilterOperator,
-  
+
   // Pagination types
   PaginationState,
   PaginationConfig,
-  
+
   // Sort types
   SortState,
   SortDirection,
   SortConfig,
-  
+
   // Filter types
   FilterState,
   FilterConfig,
   ClientFilterConfig,
-  
+
   // Search types
   SearchField,
   SearchOperator,
@@ -43,24 +42,24 @@ export type {
   AdvancedSearchState,
   ServerSearchState,
   SearchConfig,
-  
+
   // Export types
   ExportFormat,
   ExportConfig,
-  
+
   // Style types
   StyleConfig,
   StripeConfig,
-  
+
   // Selection types
   SelectionConfig,
-  
+
   // Toolbar types
   ToolbarConfig,
-  
+
   // Action button types
   ActionButtonConfig,
-  
+
   // Callback types
   OnPageChangeCallback,
   OnRowsPerPageChangeCallback,
@@ -79,8 +78,8 @@ export type {
   OnViewCallback,
   FetchDataParams,
   OnFetchDataCallback,
-  
-  // Main props
+
+  // Main props & state
   DataTableProps,
   DataTableState,
 } from './types';
@@ -88,6 +87,12 @@ export type {
 // Utility functions
 export {
   exportData,
+  exportToCsv,
+  exportToExcel,
+  exportToPdf,
+  exportToWord,
   getExportFormatLabel,
   getNestedValue,
+  formatValueForExport,
+  generateFilename,
 } from './exportUtils';

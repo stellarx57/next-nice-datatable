@@ -1,28 +1,31 @@
 /**
  * Next Nice DataTable - Custom Hook
- * State management and logic for the DataTable component
- * 
+ * State management and data-processing logic for the DataTable component.
+ *
+ * Changes in v2:
+ *  - Eliminated all `any` casts; uses Record<string, unknown> for row access
+ *  - getNestedValue imported from exportUtils (prototype-pollution safe)
+ *  - handleSelectAll respects selectionConfig.selectAllScope ('page' | 'all')
+ *  - isAllSelected / isIndeterminate reflect the active scope
+ *
  * @author Stellarx Team
- * @version 1.0.0
+ * @version 2.0.0
  */
 
 import { useState, useCallback, useMemo, useEffect } from 'react';
 import {
   DataTableProps,
-  DataTableState,
   SortState,
   FilterState,
-  PaginationState,
   DataTableColumn,
   FetchDataParams,
   ServerSearchState,
   AdvancedSearchState,
-  SearchCriteria,
 } from './types';
 import { getNestedValue } from './exportUtils';
 
 // ============================================================================
-// DEFAULT VALUES
+// DEFAULTS
 // ============================================================================
 
 const DEFAULT_ROWS_PER_PAGE = 12;
@@ -32,7 +35,7 @@ const DEFAULT_ROWS_PER_PAGE_OPTIONS = [5, 10, 12, 25, 50, 100];
 // HOOK
 // ============================================================================
 
-export function useDataTable<T>(props: DataTableProps<T>) {
+export function useDataTable<T extends Record<string, unknown>>(props: DataTableProps<T>) {
   const {
     data: propData = [],
     columns,
@@ -41,15 +44,11 @@ export function useDataTable<T>(props: DataTableProps<T>) {
     rowsPerPage: propRowsPerPage,
     sort: propSort,
     filters: propFilters,
-    // Client-side filter (full-text on loaded data)
     clientFilterTerm: propClientFilterTerm,
     clientFilterConfig,
-    // Server-side search (database search with field selection)
     serverSearch: propServerSearch,
-    // Advanced search (complex multi-field database search)
     advancedSearch: propAdvancedSearch,
     searchConfig,
-    // Legacy prop (deprecated)
     searchTerm: propSearchTerm,
     selectedRows: propSelectedRows,
     pagination: paginationConfig,
@@ -64,7 +63,6 @@ export function useDataTable<T>(props: DataTableProps<T>) {
     onClientFilterChange,
     onServerSearchChange,
     onAdvancedSearch,
-    // Legacy callback (deprecated)
     onSearchChange,
     onSelectionChange,
     onFetchData,
@@ -72,241 +70,194 @@ export function useDataTable<T>(props: DataTableProps<T>) {
   } = props;
 
   // =========================================================================
-  // STATE
+  // INTERNAL STATE
   // =========================================================================
 
-  // Pagination state
   const [internalPage, setInternalPage] = useState(0);
   const [internalRowsPerPage, setInternalRowsPerPage] = useState(
     paginationConfig?.defaultRowsPerPage || DEFAULT_ROWS_PER_PAGE
   );
-
-  // Sort state
   const [internalSort, setInternalSort] = useState<SortState>({
     column: sortConfig?.defaultColumn || null,
     direction: sortConfig?.defaultDirection || null,
   });
-
-  // Column filter state
   const [internalFilters, setInternalFilters] = useState<FilterState>({});
-
-  // Client-side filter state (full-text on loaded data)
   const [internalClientFilterTerm, setInternalClientFilterTerm] = useState('');
-
-  // Server-side search state (database search with field selection)
   const [internalServerSearch, setInternalServerSearch] = useState<ServerSearchState>({
     term: '',
     fields: searchConfig?.defaultFields || [],
   });
-
-  // Advanced search state (complex multi-field database search)
   const [internalAdvancedSearch, setInternalAdvancedSearch] = useState<AdvancedSearchState>({
     criteria: [],
     matchAll: true,
   });
-
-  // Selection state
   const [internalSelectedRows, setInternalSelectedRows] = useState<T[]>([]);
-
-  // Column visibility
   const [visibleColumns, setVisibleColumns] = useState<string[]>(
     columns.filter(col => !col.hidden).map(col => col.id)
   );
-
-  // Density
   const [density, setDensity] = useState<'compact' | 'normal' | 'comfortable'>(
     styleConfig?.density || 'normal'
   );
-
-  // Loading state for server-side operations
-  const [loading, setLoading] = useState(false);
+  const [serverLoading, setServerLoading] = useState(false);
   const [serverData, setServerData] = useState<T[]>([]);
   const [serverTotalCount, setServerTotalCount] = useState(0);
 
   // =========================================================================
-  // CONTROLLED VS UNCONTROLLED
+  // CONTROLLED / UNCONTROLLED RESOLUTION
   // =========================================================================
 
   const page = propPage ?? internalPage;
   const rowsPerPage = propRowsPerPage ?? internalRowsPerPage;
   const sort = propSort ?? internalSort;
   const filters = propFilters ?? internalFilters;
-  // Client-side filter (supports legacy searchTerm prop)
   const clientFilterTerm = propClientFilterTerm ?? propSearchTerm ?? internalClientFilterTerm;
-  // Server-side search
   const serverSearch = propServerSearch ?? internalServerSearch;
-  // Advanced search
   const advancedSearch = propAdvancedSearch ?? internalAdvancedSearch;
   const selectedRows = propSelectedRows ?? internalSelectedRows;
 
   // =========================================================================
-  // DATA PROCESSING
+  // SERVER-SIDE FLAG
   // =========================================================================
 
-  // Determine if we're using server-side mode
   const isServerSide = !!onFetchData;
 
+  // =========================================================================
+  // CLIENT-SIDE SEARCH HELPERS
+  // =========================================================================
+
   /**
-   * Recursively extracts all string values from an object for full-text search
+   * Recursively collects all leaf string values from an object.
+   * Uses a WeakSet to handle circular references safely.
    */
-  const extractAllValues = useCallback((obj: any, visited = new WeakSet()): string[] => {
+  const extractAllValues = useCallback((obj: unknown, visited = new WeakSet()): string[] => {
     if (obj === null || obj === undefined) return [];
-    
-    // Prevent circular references
-    if (typeof obj === 'object' && visited.has(obj)) return [];
-    
     const values: string[] = [];
-    
+
     if (typeof obj === 'string') {
       values.push(obj);
     } else if (typeof obj === 'number' || typeof obj === 'boolean') {
       values.push(String(obj));
     } else if (obj instanceof Date) {
-      values.push(obj.toISOString());
-      values.push(obj.toLocaleDateString());
+      values.push(obj.toISOString(), obj.toLocaleDateString());
     } else if (Array.isArray(obj)) {
+      if (visited.has(obj)) return [];
       visited.add(obj);
-      obj.forEach(item => {
-        values.push(...extractAllValues(item, visited));
-      });
+      for (const item of obj) values.push(...extractAllValues(item, visited));
     } else if (typeof obj === 'object') {
-      visited.add(obj);
-      Object.values(obj).forEach(value => {
+      if (visited.has(obj as object)) return [];
+      visited.add(obj as object);
+      for (const value of Object.values(obj as Record<string, unknown>)) {
         values.push(...extractAllValues(value, visited));
-      });
+      }
     }
-    
+
     return values;
   }, []);
 
-  /**
-   * Performs full-text search on a row
-   * Searches across all field values (including nested objects)
-   */
   const matchesSearch = useCallback((row: T, searchLower: string): boolean => {
-    // First, try searching in defined searchable columns
-    const searchableColumns = columns.filter(col => col.searchable !== false);
-    
-    for (const col of searchableColumns) {
-      const value = getNestedValue(row, col.id);
+    // Check explicitly declared searchable columns first
+    const searchableCols = columns.filter(col => col.searchable !== false);
+    for (const col of searchableCols) {
+      const value = getNestedValue(row as Record<string, unknown>, col.id);
       if (value !== null && value !== undefined) {
-        if (String(value).toLowerCase().includes(searchLower)) {
-          return true;
-        }
+        if (String(value).toLowerCase().includes(searchLower)) return true;
       }
     }
-    
-    // Then, perform full-text search across ALL field values
+    // Full-text fallback across all values
     const allValues = extractAllValues(row);
-    return allValues.some(value => 
-      value.toLowerCase().includes(searchLower)
-    );
+    return allValues.some(v => v.toLowerCase().includes(searchLower));
   }, [columns, extractAllValues]);
 
-  // Get processed data (filtered, sorted, paginated)
-  const processedData = useMemo(() => {
-    if (isServerSide) {
-      return serverData;
-    }
+  // =========================================================================
+  // DATA PROCESSING
+  // =========================================================================
+
+  const processedData = useMemo((): T[] => {
+    if (isServerSide) return serverData;
 
     let result = [...propData];
 
-    // Apply client-side full-text filter across all field values
+    // Client-side full-text filter
     if (clientFilterTerm && clientFilterConfig?.enabled !== false) {
       const filterLower = clientFilterTerm.toLowerCase();
       result = result.filter(row => matchesSearch(row, filterLower));
     }
 
-    // Apply column filters
+    // Column filters (client-side only)
     if (Object.keys(filters).length > 0 && filterConfig?.filterMode !== 'server') {
-      result = result.filter(row => {
-        return Object.entries(filters).every(([columnId, filter]) => {
-          const value = getNestedValue(row, columnId);
-          
+      result = result.filter(row =>
+        Object.entries(filters).every(([columnId, filter]) => {
+          const value = getNestedValue(row as Record<string, unknown>, columnId);
+          const strVal = String(value ?? '').toLowerCase();
+          const strFilter = String(filter.value ?? '').toLowerCase();
+
           switch (filter.operator) {
-            case 'equals':
-              return value == filter.value;
-            case 'contains':
-              return String(value || '').toLowerCase().includes(String(filter.value).toLowerCase());
-            case 'startsWith':
-              return String(value || '').toLowerCase().startsWith(String(filter.value).toLowerCase());
-            case 'endsWith':
-              return String(value || '').toLowerCase().endsWith(String(filter.value).toLowerCase());
-            case 'greaterThan':
-              return Number(value) > Number(filter.value);
-            case 'lessThan':
-              return Number(value) < Number(filter.value);
-            case 'isEmpty':
-              return value === null || value === undefined || value === '';
-            case 'isNotEmpty':
-              return value !== null && value !== undefined && value !== '';
-            default:
-              return true;
+            case 'equals':      return String(value) === String(filter.value);
+            case 'contains':    return strVal.includes(strFilter);
+            case 'startsWith':  return strVal.startsWith(strFilter);
+            case 'endsWith':    return strVal.endsWith(strFilter);
+            case 'greaterThan': return Number(value) > Number(filter.value);
+            case 'lessThan':    return Number(value) < Number(filter.value);
+            case 'isEmpty':     return value === null || value === undefined || value === '';
+            case 'isNotEmpty':  return value !== null && value !== undefined && value !== '';
+            default:            return true;
           }
-        });
-      });
+        })
+      );
     }
 
-    // Apply sorting
+    // Sorting
     if (sort.column && sort.direction) {
       result.sort((a, b) => {
-        const aValue = getNestedValue(a, sort.column!);
-        const bValue = getNestedValue(b, sort.column!);
+        const aVal = getNestedValue(a as Record<string, unknown>, sort.column!);
+        const bVal = getNestedValue(b as Record<string, unknown>, sort.column!);
 
-        let comparison = 0;
-        if (aValue === null || aValue === undefined) comparison = 1;
-        else if (bValue === null || bValue === undefined) comparison = -1;
-        else if (typeof aValue === 'string' && typeof bValue === 'string') {
-          comparison = aValue.localeCompare(bValue);
-        } else if (typeof aValue === 'number' && typeof bValue === 'number') {
-          comparison = aValue - bValue;
+        let cmp = 0;
+        if (aVal === null || aVal === undefined) cmp = 1;
+        else if (bVal === null || bVal === undefined) cmp = -1;
+        else if (typeof aVal === 'string' && typeof bVal === 'string') {
+          cmp = aVal.localeCompare(bVal);
+        } else if (typeof aVal === 'number' && typeof bVal === 'number') {
+          cmp = aVal - bVal;
         } else {
-          comparison = String(aValue).localeCompare(String(bValue));
+          cmp = String(aVal).localeCompare(String(bVal));
         }
 
-        return sort.direction === 'desc' ? -comparison : comparison;
+        return sort.direction === 'desc' ? -cmp : cmp;
       });
     }
 
     return result;
-  }, [propData, clientFilterTerm, filters, sort, columns, isServerSide, serverData, clientFilterConfig, filterConfig, matchesSearch]);
+  }, [
+    propData, clientFilterTerm, filters, sort,
+    isServerSide, serverData, clientFilterConfig, filterConfig, matchesSearch,
+  ]);
 
-  // Calculate total count
-  const totalCount = useMemo(() => {
-    if (isServerSide) {
-      return propTotalCount ?? serverTotalCount;
-    }
+  const totalCount = useMemo((): number => {
+    if (isServerSide) return propTotalCount ?? serverTotalCount;
     return processedData.length;
   }, [isServerSide, propTotalCount, serverTotalCount, processedData.length]);
 
-  // Calculate total pages
-  const totalPages = useMemo(() => {
-    return Math.ceil(totalCount / rowsPerPage);
-  }, [totalCount, rowsPerPage]);
+  const totalPages = useMemo(() => Math.ceil(totalCount / rowsPerPage), [totalCount, rowsPerPage]);
 
-  // Get paginated data
-  const paginatedData = useMemo(() => {
-    if (isServerSide) {
-      return processedData;
-    }
+  const paginatedData = useMemo((): T[] => {
+    if (isServerSide) return processedData;
     const start = page * rowsPerPage;
-    const end = start + rowsPerPage;
-    return processedData.slice(start, end);
+    return processedData.slice(start, start + rowsPerPage);
   }, [processedData, page, rowsPerPage, isServerSide]);
 
-  // Get visible columns configuration
-  const visibleColumnsConfig = useMemo(() => {
-    return columns.filter(col => visibleColumns.includes(col.id));
-  }, [columns, visibleColumns]);
+  const visibleColumnsConfig = useMemo((): DataTableColumn<T>[] =>
+    columns.filter(col => visibleColumns.includes(col.id)),
+    [columns, visibleColumns]
+  );
 
   // =========================================================================
-  // SERVER-SIDE DATA FETCHING
+  // SERVER-SIDE FETCHING
   // =========================================================================
 
   const fetchServerData = useCallback(async () => {
     if (!onFetchData) return;
-
-    setLoading(true);
+    setServerLoading(true);
     try {
       const params: FetchDataParams = {
         page,
@@ -317,20 +268,17 @@ export function useDataTable<T>(props: DataTableProps<T>) {
         advancedSearch: advancedSearch.criteria.length > 0 ? advancedSearch : undefined,
       };
       const result = await onFetchData(params);
-      setServerData(result.data);
+      setServerData(result.data as T[]);
       setServerTotalCount(result.totalCount);
-    } catch (error) {
-      console.error('Failed to fetch data:', error);
+    } catch (err) {
+      console.error('[DataTable] Failed to fetch server data:', err);
     } finally {
-      setLoading(false);
+      setServerLoading(false);
     }
   }, [onFetchData, page, rowsPerPage, sort, filters, serverSearch, advancedSearch]);
 
-  // Fetch data when params change (server-side mode)
   useEffect(() => {
-    if (isServerSide) {
-      fetchServerData();
-    }
+    if (isServerSide) fetchServerData();
   }, [isServerSide, fetchServerData]);
 
   // =========================================================================
@@ -338,11 +286,8 @@ export function useDataTable<T>(props: DataTableProps<T>) {
   // =========================================================================
 
   const handlePageChange = useCallback((newPage: number) => {
-    if (onPageChange) {
-      onPageChange(newPage);
-    } else {
-      setInternalPage(newPage);
-    }
+    if (onPageChange) onPageChange(newPage);
+    else setInternalPage(newPage);
   }, [onPageChange]);
 
   const handleRowsPerPageChange = useCallback((newRowsPerPage: number) => {
@@ -350,205 +295,163 @@ export function useDataTable<T>(props: DataTableProps<T>) {
       onRowsPerPageChange(newRowsPerPage);
     } else {
       setInternalRowsPerPage(newRowsPerPage);
-      setInternalPage(0); // Reset to first page
+      setInternalPage(0);
     }
   }, [onRowsPerPageChange]);
 
   const handleSortChange = useCallback((column: string) => {
+    const newDir =
+      sort.column === column
+        ? sort.direction === 'asc' ? 'desc' : sort.direction === 'desc' ? null : 'asc'
+        : 'asc';
+
     const newSort: SortState = {
-      column,
-      direction:
-        sort.column === column
-          ? sort.direction === 'asc'
-            ? 'desc'
-            : sort.direction === 'desc'
-            ? null
-            : 'asc'
-          : 'asc',
+      column: newDir === null ? null : column,
+      direction: newDir,
     };
 
-    // Clear sort if direction is null
-    if (newSort.direction === null) {
-      newSort.column = null;
-    }
-
-    if (onSortChange) {
-      onSortChange(newSort);
-    } else {
-      setInternalSort(newSort);
-    }
+    if (onSortChange) onSortChange(newSort);
+    else setInternalSort(newSort);
   }, [sort, onSortChange]);
 
-  const handleFilterChange = useCallback((columnId: string, value: any, operator: string = 'contains') => {
+  const handleFilterChange = useCallback((
+    columnId: string,
+    value: unknown,
+    operator = 'contains'
+  ) => {
     const newFilters = { ...filters };
-
     if (value === '' || value === null || value === undefined) {
       delete newFilters[columnId];
     } else {
-      newFilters[columnId] = { value, operator: operator as any };
+      newFilters[columnId] = { value: value as FilterState[string]['value'], operator: operator as FilterState[string]['operator'] };
     }
-
-    if (onFilterChange) {
-      onFilterChange(newFilters);
-    } else {
-      setInternalFilters(newFilters);
-      setInternalPage(0); // Reset to first page
-    }
+    if (onFilterChange) onFilterChange(newFilters);
+    else { setInternalFilters(newFilters); setInternalPage(0); }
   }, [filters, onFilterChange]);
 
   const handleClearFilters = useCallback(() => {
-    if (onFilterChange) {
-      onFilterChange({});
-    } else {
-      setInternalFilters({});
-      setInternalPage(0);
-    }
+    if (onFilterChange) onFilterChange({});
+    else { setInternalFilters({}); setInternalPage(0); }
   }, [onFilterChange]);
 
-  // Client-side filter handler (full-text on loaded data)
   const handleClientFilterChange = useCallback((value: string) => {
-    if (onClientFilterChange) {
-      onClientFilterChange(value);
-    } else if (onSearchChange) {
-      // Legacy support
-      onSearchChange(value);
-    } else {
-      setInternalClientFilterTerm(value);
-      setInternalPage(0); // Reset to first page
-    }
+    if (onClientFilterChange) onClientFilterChange(value);
+    else if (onSearchChange) onSearchChange(value);
+    else { setInternalClientFilterTerm(value); setInternalPage(0); }
   }, [onClientFilterChange, onSearchChange]);
 
-  // Server-side search handler (database search with field selection)
   const handleServerSearchChange = useCallback((term: string) => {
-    const newSearch: ServerSearchState = {
-      ...serverSearch,
-      term,
-    };
-    if (onServerSearchChange) {
-      onServerSearchChange(newSearch);
-    } else {
-      setInternalServerSearch(newSearch);
-      setInternalPage(0); // Reset to first page
-    }
+    const newSearch: ServerSearchState = { ...serverSearch, term };
+    if (onServerSearchChange) onServerSearchChange(newSearch);
+    else { setInternalServerSearch(newSearch); setInternalPage(0); }
   }, [serverSearch, onServerSearchChange]);
 
-  // Handler to change selected search fields
   const handleSearchFieldsChange = useCallback((fields: string[]) => {
-    const newSearch: ServerSearchState = {
-      ...serverSearch,
-      fields,
-    };
-    if (onServerSearchChange) {
-      onServerSearchChange(newSearch);
-    } else {
-      setInternalServerSearch(newSearch);
-    }
+    const newSearch: ServerSearchState = { ...serverSearch, fields };
+    if (onServerSearchChange) onServerSearchChange(newSearch);
+    else setInternalServerSearch(newSearch);
   }, [serverSearch, onServerSearchChange]);
 
-  // Advanced search handler (complex multi-field database search)
   const handleAdvancedSearch = useCallback((search: AdvancedSearchState) => {
-    if (onAdvancedSearch) {
-      onAdvancedSearch(search);
-    } else {
-      setInternalAdvancedSearch(search);
-      setInternalPage(0); // Reset to first page
-    }
+    if (onAdvancedSearch) onAdvancedSearch(search);
+    else { setInternalAdvancedSearch(search); setInternalPage(0); }
   }, [onAdvancedSearch]);
 
-  // Clear advanced search
   const handleClearAdvancedSearch = useCallback(() => {
-    const emptySearch: AdvancedSearchState = { criteria: [], matchAll: true };
-    if (onAdvancedSearch) {
-      onAdvancedSearch(emptySearch);
-    } else {
-      setInternalAdvancedSearch(emptySearch);
-      setInternalPage(0);
-    }
+    const empty: AdvancedSearchState = { criteria: [], matchAll: true };
+    if (onAdvancedSearch) onAdvancedSearch(empty);
+    else { setInternalAdvancedSearch(empty); setInternalPage(0); }
   }, [onAdvancedSearch]);
 
-  // Check if advanced search is active
-  const hasActiveAdvancedSearch = useMemo(() => {
-    return advancedSearch.criteria.length > 0 && advancedSearch.criteria.some(c => c.value.trim() !== '');
-  }, [advancedSearch]);
+  const hasActiveAdvancedSearch = useMemo(() =>
+    advancedSearch.criteria.length > 0 &&
+    advancedSearch.criteria.some(c => c.value.trim() !== ''),
+    [advancedSearch]
+  );
 
-  // Legacy handler for backwards compatibility
+  /** @deprecated – kept for backwards-compat, delegates to handleClientFilterChange */
   const handleSearchChange = useCallback((value: string) => {
     handleClientFilterChange(value);
   }, [handleClientFilterChange]);
 
+  // -------------------------------------------------------------------------
+  // SELECTION
+  // -------------------------------------------------------------------------
+
+  const getRowKey = useCallback((row: T): unknown =>
+    (row as Record<string, unknown>)[rowKeyField],
+    [rowKeyField]
+  );
+
+  const isRowSelected = useCallback((row: T): boolean => {
+    const key = getRowKey(row);
+    return selectedRows.some(r => (r as Record<string, unknown>)[rowKeyField] === key);
+  }, [selectedRows, rowKeyField, getRowKey]);
+
   const handleSelectionChange = useCallback((row: T) => {
-    const rowKey = (row as any)[rowKeyField];
-    const isSelected = selectedRows.some((r: any) => r[rowKeyField] === rowKey);
-    
+    const key = getRowKey(row);
+    const alreadySelected = selectedRows.some(r => (r as Record<string, unknown>)[rowKeyField] === key);
+
     let newSelection: T[];
     if (selectionConfig?.mode === 'single') {
-      newSelection = isSelected ? [] : [row];
+      newSelection = alreadySelected ? [] : [row];
     } else {
-      newSelection = isSelected
-        ? selectedRows.filter((r: any) => r[rowKeyField] !== rowKey)
+      newSelection = alreadySelected
+        ? selectedRows.filter(r => (r as Record<string, unknown>)[rowKeyField] !== key)
         : [...selectedRows, row];
     }
 
-    if (onSelectionChange) {
-      onSelectionChange(newSelection);
-    } else {
-      setInternalSelectedRows(newSelection);
-    }
-  }, [selectedRows, rowKeyField, selectionConfig, onSelectionChange]);
+    if (onSelectionChange) onSelectionChange(newSelection);
+    else setInternalSelectedRows(newSelection);
+  }, [selectedRows, rowKeyField, selectionConfig, onSelectionChange, getRowKey]);
 
-  // Handle double-click selection (selects only the clicked row, deselects others)
   const handleDoubleClickSelection = useCallback((row: T) => {
     if (selectionConfig?.doubleClickSelectsOnly !== false) {
-      const newSelection = [row];
-      if (onSelectionChange) {
-        onSelectionChange(newSelection);
-      } else {
-        setInternalSelectedRows(newSelection);
-      }
+      if (onSelectionChange) onSelectionChange([row]);
+      else setInternalSelectedRows([row]);
     }
   }, [selectionConfig, onSelectionChange]);
 
+  /**
+   * Determines which set of rows the "select all" checkbox covers.
+   * 'page' (default) – only the currently visible page.
+   * 'all' – every row surviving the current filter.
+   */
+  const selectAllScope = useMemo((): T[] =>
+    selectionConfig?.selectAllScope === 'all' ? processedData : paginatedData,
+    [selectionConfig?.selectAllScope, processedData, paginatedData]
+  );
+
   const handleSelectAll = useCallback((checked: boolean) => {
-    const newSelection = checked ? paginatedData : [];
-    
-    if (onSelectionChange) {
-      onSelectionChange(newSelection);
-    } else {
-      setInternalSelectedRows(newSelection);
-    }
-  }, [paginatedData, onSelectionChange]);
+    const newSelection = checked ? selectAllScope : [];
+    if (onSelectionChange) onSelectionChange(newSelection);
+    else setInternalSelectedRows(newSelection);
+  }, [selectAllScope, onSelectionChange]);
+
+  const isAllSelected = useMemo(() => {
+    if (selectAllScope.length === 0) return false;
+    return selectAllScope.every(row => isRowSelected(row));
+  }, [selectAllScope, isRowSelected]);
+
+  const isIndeterminate = useMemo(() => {
+    if (selectAllScope.length === 0) return false;
+    const count = selectAllScope.filter(row => isRowSelected(row)).length;
+    return count > 0 && count < selectAllScope.length;
+  }, [selectAllScope, isRowSelected]);
+
+  // -------------------------------------------------------------------------
+  // COLUMN VISIBILITY & DENSITY
+  // -------------------------------------------------------------------------
 
   const handleColumnVisibilityChange = useCallback((columnId: string, visible: boolean) => {
-    setVisibleColumns(prev => 
-      visible 
-        ? [...prev, columnId]
-        : prev.filter(id => id !== columnId)
+    setVisibleColumns(prev =>
+      visible ? [...prev, columnId] : prev.filter(id => id !== columnId)
     );
   }, []);
 
   const handleDensityChange = useCallback((newDensity: 'compact' | 'normal' | 'comfortable') => {
     setDensity(newDensity);
   }, []);
-
-  // =========================================================================
-  // SELECTION HELPERS
-  // =========================================================================
-
-  const isRowSelected = useCallback((row: T) => {
-    const rowKey = (row as any)[rowKeyField];
-    return selectedRows.some((r: any) => r[rowKeyField] === rowKey);
-  }, [selectedRows, rowKeyField]);
-
-  const isAllSelected = useMemo(() => {
-    if (paginatedData.length === 0) return false;
-    return paginatedData.every(row => isRowSelected(row));
-  }, [paginatedData, isRowSelected]);
-
-  const isIndeterminate = useMemo(() => {
-    if (paginatedData.length === 0) return false;
-    const selectedCount = paginatedData.filter(row => isRowSelected(row)).length;
-    return selectedCount > 0 && selectedCount < paginatedData.length;
-  }, [paginatedData, isRowSelected]);
 
   // =========================================================================
   // RETURN
@@ -560,7 +463,7 @@ export function useDataTable<T>(props: DataTableProps<T>) {
     allProcessedData: processedData,
     totalCount,
     totalPages,
-    loading: props.loading || loading,
+    loading: !!props.loading || serverLoading,
 
     // Pagination
     page,
@@ -570,22 +473,22 @@ export function useDataTable<T>(props: DataTableProps<T>) {
     // Sort
     sort,
 
-    // Column Filters
+    // Column filters
     filters,
     hasActiveFilters: Object.keys(filters).length > 0,
 
-    // Client-side Filter (full-text on loaded data)
+    // Client-side filter
     clientFilterTerm,
 
-    // Server-side Search (database search with field selection)
+    // Server search (legacy)
     serverSearch,
     searchableFields: searchConfig?.searchableFields || [],
 
-    // Advanced Search (complex multi-field database search)
+    // Advanced search
     advancedSearch,
     hasActiveAdvancedSearch,
 
-    // Legacy (deprecated)
+    // Legacy alias
     searchTerm: clientFilterTerm,
 
     // Selection
@@ -599,7 +502,7 @@ export function useDataTable<T>(props: DataTableProps<T>) {
     allColumns: columns,
     visibleColumns,
 
-    // Density
+    // UI
     density,
 
     // Handlers
@@ -613,7 +516,7 @@ export function useDataTable<T>(props: DataTableProps<T>) {
     handleSearchFieldsChange,
     handleAdvancedSearch,
     handleClearAdvancedSearch,
-    handleSearchChange, // Legacy
+    handleSearchChange,
     handleSelectionChange,
     handleDoubleClickSelection,
     handleSelectAll,
@@ -624,4 +527,3 @@ export function useDataTable<T>(props: DataTableProps<T>) {
 }
 
 export default useDataTable;
-

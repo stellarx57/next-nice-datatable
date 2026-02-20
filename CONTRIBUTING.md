@@ -1,187 +1,218 @@
-# Contributing to Next Nice DataTable
+# Contributing to next-nice-datatable
 
-First off, thank you for considering contributing to Next Nice DataTable! It's people like you that make this component better for everyone.
+Thank you for considering a contribution! Every bug report, suggestion, and pull request makes the library better for everyone.
+
+---
 
 ## Code of Conduct
 
-This project and everyone participating in it is governed by respect and professionalism. Please be kind and constructive.
+This project operates under a standard of mutual respect and professionalism. Please be kind, constructive, and inclusive in all interactions.
 
-## How Can I Contribute?
+---
 
-### Reporting Bugs
+## How to contribute
 
-Before creating bug reports, please check the existing issues to avoid duplicates. When you create a bug report, include as many details as possible:
+### Reporting bugs
 
-- **Use a clear and descriptive title**
-- **Describe the exact steps to reproduce the problem**
-- **Provide specific examples**
-- **Describe the behavior you observed and what you expected**
-- **Include screenshots or animated GIFs if applicable**
-- **Include your environment details** (OS, Node version, React version, etc.)
+Before opening a new issue, search the existing issues to avoid duplicates. When you do open a report, please include:
 
-### Suggesting Enhancements
+- A clear, descriptive title
+- The exact steps to reproduce the problem
+- What you expected to happen and what actually happened
+- Your environment: OS, Node version, React version, MUI version
+- A minimal code example or StackBlitz/CodeSandbox link if possible
 
-Enhancement suggestions are tracked as GitHub issues. When creating an enhancement suggestion, include:
+### Suggesting enhancements
 
-- **Use a clear and descriptive title**
-- **Provide a detailed description of the suggested enhancement**
-- **Explain why this enhancement would be useful**
-- **List any alternative solutions you've considered**
+Enhancement suggestions are tracked as GitHub issues. Include:
 
-### Pull Requests
+- A clear, descriptive title
+- A detailed description of the proposed change
+- Why it would be useful and who would benefit
+- Any alternatives you considered
 
-1. **Fork the repository** and create your branch from `main`
-2. **Make your changes** with clear, descriptive commits
-3. **Update documentation** if you're changing functionality
-4. **Follow the existing code style**
-5. **Test your changes** thoroughly
-6. **Submit a pull request**
+### Pull requests
 
-## Development Setup
+1. Fork the repository and create a branch from `main`
+2. Make focused, well-described commits (see [Commit messages](#commit-messages))
+3. Update the README and CHANGELOG if your change affects behaviour or the public API
+4. Run all checks before pushing (see [Development setup](#development-setup))
+5. Open a pull request against `main` with a description of what changed and why
+
+---
+
+## Development setup
 
 ### Prerequisites
 
-- Node.js 18+ or 20+
-- npm or yarn
+- Node.js 18 or 20+
+- npm 9+
 
-### Setup Steps
+### Getting started
 
 ```bash
 # Clone your fork
-git clone https://github.com/YOUR_USERNAME/next_nice_datatable.git
-cd next_nice_datatable
+git clone https://github.com/YOUR_USERNAME/next-nice-datatable.git
+cd next-nice-datatable
 
 # Install dependencies
 npm install
 
-# Build the package
+# Type-check without building
+npm run type-check
+
+# Build the package (CJS + ESM + .d.ts)
 npm run build
 
-# Watch mode for development
+# Watch mode – rebuilds on every file save
 npm run dev
 
-# Run linter
+# Lint
 npm run lint
-
-# Run type check
-npm run type-check
 ```
 
-## Project Structure
+### Testing your changes locally
 
-```
-next_nice_datatable/
-├── src/
-│   ├── DataTable.tsx      # Main component
-│   ├── SearchDialog.tsx   # Advanced search dialog
-│   ├── useDataTable.ts    # Custom hook
-│   ├── exportUtils.ts     # Export utilities
-│   ├── types.ts           # TypeScript definitions
-│   └── index.ts           # Main entry point
-├── dist/                  # Built files (generated)
-├── .github/
-│   └── workflows/         # CI/CD workflows
-├── package.json
-├── tsconfig.json
-├── tsup.config.ts
-└── README.md
+The easiest way to test a local build inside another project is `npm link`:
+
+```bash
+# Inside this repo
+npm run build
+npm link
+
+# Inside your consumer project
+npm link next-nice-datatable
 ```
 
-## Coding Style
-
-### TypeScript
-
-- Use TypeScript for all new code
-- Provide proper type definitions
-- Avoid `any` types when possible
-- Use interfaces for component props
-
-### React
-
-- Use functional components with hooks
-- Follow React best practices
-- Use `useCallback` and `useMemo` appropriately
-- Keep components focused and composable
-
-### Naming Conventions
-
-- **Components**: PascalCase (e.g., `DataTable`, `SearchDialog`)
-- **Files**: PascalCase for components, camelCase for utilities
-- **Functions**: camelCase (e.g., `handleClick`, `formatData`)
-- **Constants**: UPPER_SNAKE_CASE (e.g., `DEFAULT_PAGE_SIZE`)
-- **Interfaces**: PascalCase with descriptive names
-
-### Comments
-
-- Write self-documenting code when possible
-- Add JSDoc comments for public APIs
-- Explain complex logic with inline comments
-- Keep comments up-to-date with code changes
-
-## Commit Messages
-
-Follow the [Conventional Commits](https://www.conventionalcommits.org/) specification:
-
-- `feat: add new feature`
-- `fix: fix a bug`
-- `docs: documentation changes`
-- `style: code style changes (formatting, etc.)`
-- `refactor: code refactoring`
-- `test: add or update tests`
-- `chore: maintenance tasks`
-
-Examples:
-```
-feat: add column resizing functionality
-fix: resolve pagination issue on mobile
-docs: update README with new examples
-refactor: simplify export logic
-```
-
-## Testing
-
-### Manual Testing
-
-Before submitting a pull request:
-
-1. Test your changes in a real React/Next.js application
-2. Test on different screen sizes (mobile, tablet, desktop)
-3. Test with different data sets (empty, small, large)
-4. Test all affected features
-
-### Automated Testing
-
-We welcome contributions that add automated tests!
-
-## Documentation
-
-- Update README.md for user-facing changes
-- Update TypeScript definitions
-- Add examples for new features
-- Update CHANGELOG.md
-
-## Release Process
-
-Releases are handled by maintainers:
-
-1. Update version in `package.json`
-2. Update CHANGELOG.md
-3. Create a new tag (`v1.0.0`)
-4. Push tag to trigger GitHub Actions
-5. GitHub Actions publishes to npm
-
-## Questions?
-
-Feel free to:
-- Open an issue for questions
-- Start a discussion on GitHub Discussions
-- Reach out to maintainers
-
-## License
-
-By contributing, you agree that your contributions will be licensed under the MIT License.
+Or copy the `dist/` folder and import it directly in a local test app.
 
 ---
 
-Thank you for contributing to Next Nice DataTable! 🎉
+## Project structure
 
+```
+next-nice-datatable/
+├── src/
+│   ├── DataTable.tsx       Main component
+│   ├── SearchDialog.tsx    Advanced-search dialog
+│   ├── useDataTable.ts     State management hook
+│   ├── exportUtils.ts      CSV / Excel / PDF / Word export helpers
+│   ├── types.ts            All TypeScript type definitions
+│   └── index.ts            Public entry point (exports)
+├── dist/                   Built output (generated – not committed)
+├── package.json
+├── tsconfig.json
+├── tsup.config.ts
+├── README.md
+├── CHANGELOG.md
+└── CONTRIBUTING.md
+```
+
+---
+
+## Coding style
+
+### TypeScript
+
+- All new code must be TypeScript; no `.js` source files
+- Avoid `any` — use `unknown` with type guards or `Record<string, unknown>` for dynamic objects
+- Use interfaces for component props and exported configuration objects
+- Document all public-facing types with JSDoc comments
+
+### React
+
+- Functional components with hooks only
+- Use `useCallback` for handlers passed as props (prevents unnecessary child re-renders)
+- Use `useMemo` for derived values that are expensive to compute
+- Keep components focused; extract sub-components or hooks when a single component exceeds ~300 lines
+
+### Security checklist (mandatory for export-related changes)
+
+- Any string inserted into generated HTML (PDF, Word) **must** be passed through `escapeHtml()` unless explicitly behind the `allowUnsafeHtml` flag
+- Any property lookup using a user-supplied key **must** go through `getNestedValue()` (which blocks `__proto__`, `constructor`, `prototype`)
+- Do not introduce new dependencies without discussing them in an issue first — each dependency is a potential supply-chain risk
+
+### Naming conventions
+
+| Kind | Style | Example |
+|---|---|---|
+| React components | PascalCase | `DataTable`, `SearchDialog` |
+| Hooks | camelCase with `use` prefix | `useDataTable` |
+| Utility functions | camelCase | `getNestedValue`, `exportToPdf` |
+| Constants | UPPER_SNAKE_CASE | `BANNED_KEYS`, `DEFAULT_ROWS_PER_PAGE` |
+| TypeScript interfaces | PascalCase | `DataTableColumn`, `ExportConfig` |
+| Files — components | PascalCase | `DataTable.tsx` |
+| Files — utilities/hooks | camelCase | `exportUtils.ts`, `useDataTable.ts` |
+
+---
+
+## Commit messages
+
+Follow the [Conventional Commits](https://www.conventionalcommits.org/) specification:
+
+```
+<type>: <short imperative summary>
+
+[optional body]
+[optional footer]
+```
+
+| Type | When to use |
+|---|---|
+| `feat` | A new feature |
+| `fix` | A bug fix |
+| `security` | A security hardening change |
+| `perf` | A performance improvement |
+| `refactor` | Code change that is neither a fix nor a feature |
+| `docs` | Documentation only |
+| `style` | Formatting, whitespace (no logic change) |
+| `test` | Adding or updating tests |
+| `chore` | Maintenance — dependency bumps, build config, etc. |
+
+Examples:
+
+```
+feat: add selectAllScope option to SelectionConfig
+fix: clear debounce timer on unmount to prevent state updates after unmount
+security: block __proto__ and constructor in getNestedValue
+docs: document allowUnsafeHtml flag in ExportConfig
+```
+
+---
+
+## Release process
+
+Releases are made by maintainers.
+
+```bash
+# 1. Ensure main is clean and type-checks pass
+git checkout main && git pull
+npm run type-check
+
+# 2. Bump version (automatically commits and tags)
+npm version patch   # 2.0.0 → 2.0.1
+# or
+npm version minor   # 2.0.0 → 2.1.0
+# or
+npm version major   # 2.0.0 → 3.0.0
+
+# 3. Push commit + tag
+git push origin main --follow-tags
+
+# 4. Publish to npm (prepublishOnly runs the build automatically)
+npm publish --access public
+```
+
+After publishing, create a GitHub Release from the new tag at  
+https://github.com/stellarx57/next-nice-datatable/releases/new
+
+---
+
+## Questions?
+
+- Open a [GitHub Issue](https://github.com/stellarx57/next-nice-datatable/issues) for bugs or feature requests
+- Start a [GitHub Discussion](https://github.com/stellarx57/next-nice-datatable/discussions) for questions, ideas, or general conversation
+
+---
+
+Thank you for contributing to next-nice-datatable!

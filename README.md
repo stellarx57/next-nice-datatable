@@ -1,70 +1,71 @@
-# Next Nice DataTable
+# next-nice-datatable
 
-A comprehensive, feature-rich DataTable component for Next.js and React applications with Material-UI. Built with TypeScript, fully customizable, and production-ready.
+A comprehensive, feature-rich, **security-hardened** DataTable component for Next.js and React applications built on Material-UI. Fully typed with TypeScript, production-ready, and extensively customizable.
 
-[![npm version](https://img.shields.io/npm/v/next_nice_datatable.svg)](https://www.npmjs.com/package/next_nice_datatable)
+[![npm version](https://img.shields.io/npm/v/next-nice-datatable.svg)](https://www.npmjs.com/package/next-nice-datatable)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![TypeScript](https://img.shields.io/badge/TypeScript-Ready-blue.svg)](https://www.typescriptlang.org/)
 
-## 🌟 Features
+---
 
-### Core Features
-- ✅ **TypeScript Support** - Fully typed for excellent IDE support
-- ✅ **Material-UI Integration** - Beautiful, consistent design
-- ✅ **Client & Server-Side** - Support for both data modes
-- ✅ **Responsive Design** - Works on mobile, tablet, and desktop
-- ✅ **Accessible** - ARIA labels and keyboard navigation
+## Features
 
-### Data Management
-- 🔍 **Advanced Search** - Multi-field, multi-operator search dialog
-- 🔀 **Sorting** - Single and multi-column sorting
-- 📄 **Pagination** - Configurable with multiple options
-- 🔎 **Filtering** - Client-side and server-side filtering
-- 🎯 **Selection** - Single and multiple row selection
+### Core
+- **TypeScript** — fully typed; zero `any` casts in the library itself
+- **Material-UI 5 / 6** — consistent, themeable design out of the box
+- **Client-side & server-side modes** — bring your own fetch or let the table handle it
+- **Responsive** — built-in `hiddenOnMobile` / `hiddenOnTablet` per column
 
-### User Interface
-- 📊 **Column Customization** - Show/hide, resize, reorder
-- 📐 **Density Control** - Compact, normal, and comfortable views
-- 🎨 **Styling Options** - Stripes, borders, colors
-- 💫 **Smooth Animations** - Professional transitions
+### Data
+- **Sorting** — click column headers; cycles asc → desc → unsorted
+- **Pagination** — configurable rows-per-page options, first/last buttons
+- **Client-side filter** — instant full-text filter across all loaded rows (debounced, leak-free)
+- **Advanced search dialog** — multi-field, multi-operator (Contains / Equals / Starts with / Ends with), AND/OR match mode
+- **Column filters** — per-column inline filter row (client or server mode)
+- **Row selection** — single or multiple, with configurable select-all scope (`page` or `all`)
 
-### Export Capabilities
-- 📥 **CSV Export** - Standard CSV format
-- 📗 **Excel Export** - `.xlsx` format with styling
-- 📕 **PDF Export** - Professional PDFs with headers/footers
-- 📝 **Word Export** - `.docx` format
+### Exports (real files, not print dialogs)
+- **CSV** — RFC-4180 compliant, handles commas, quotes, and newlines
+- **Excel (.xlsx)** — via the `xlsx` package; real `.xlsx` with column widths and optional bold title row
+- **PDF** — via `jsPDF` + `jspdf-autotable`; vector PDF with styled table, header, footer, and page numbers
+- **Word (.doc)** — HTML-in-DOC, opens in Microsoft Word
 
-### Developer Experience
-- 🧩 **Modular Architecture** - Use only what you need
-- 🔌 **Easy Integration** - Drop-in component
-- 📚 **Comprehensive Types** - Full TypeScript definitions
-- 🎯 **Callback System** - Control every interaction
+### Customisation (new in v2)
+- **Rename every button** — Add, View, Edit, Delete, Export, Advanced Search, Refresh, and more
+- **Control every button's colour and tooltip** — per-button MUI colour prop
+- **Show or hide any toolbar element** — individual flags in `toolbarConfig`
+- **Select-all scope** — choose whether the checkbox selects only the current page or the entire filtered dataset
+- **Column visibility menu title** — configurable string
+- **Export button label** — configurable string
+
+### Security (hardened in v2)
+- **Prototype-pollution protection** — `getNestedValue` blocks `__proto__`, `constructor`, and `prototype` path segments
+- **XSS-safe exports** — `customHeader`, `customFooter`, and document titles are HTML-escaped by default in all export formats; raw HTML is only permitted when `allowUnsafeHtml: true` is explicitly set (opt-in, for trusted server values only)
+- **Null-safe escaping** — `escapeHtml` safely converts `null` / `undefined` to an empty string instead of the literal text `"null"`
 
 ---
 
-## 📦 Installation
+## Installation
 
 ```bash
-npm install next_nice_datatable
+npm install next-nice-datatable
 ```
 
-### Peer Dependencies
-
-Make sure you have these installed:
+### Peer dependencies
 
 ```bash
-npm install @mui/material @mui/icons-material react react-dom
+npm install @mui/material @mui/icons-material @emotion/react @emotion/styled react react-dom
 ```
 
 ---
 
-## 🚀 Quick Start
+## Quick start
 
-### Basic Usage
+### Minimal table
 
 ```tsx
-import { DataTable } from 'next_nice_datatable';
-import type { DataTableColumn } from 'next_nice_datatable';
+import { DataTable } from 'next-nice-datatable';
+import type { DataTableColumn } from 'next-nice-datatable';
 
 interface User {
   id: number;
@@ -74,246 +75,222 @@ interface User {
 }
 
 const columns: DataTableColumn<User>[] = [
-  {
-    id: 'name',
-    label: 'Name',
-    sortable: true,
-    minWidth: 150,
-  },
-  {
-    id: 'email',
-    label: 'Email',
-    sortable: true,
-    minWidth: 200,
-  },
-  {
-    id: 'role',
-    label: 'Role',
-    sortable: true,
-    minWidth: 120,
-  },
+  { id: 'name',  label: 'Name',  sortable: true, minWidth: 150 },
+  { id: 'email', label: 'Email', sortable: true, minWidth: 200 },
+  { id: 'role',  label: 'Role',  sortable: true, minWidth: 120 },
 ];
 
 const users: User[] = [
-  { id: 1, name: 'John Doe', email: 'john@example.com', role: 'Admin' },
-  { id: 2, name: 'Jane Smith', email: 'jane@example.com', role: 'User' },
+  { id: 1, name: 'John Doe',   email: 'john@example.com', role: 'Admin' },
+  { id: 2, name: 'Jane Smith', email: 'jane@example.com', role: 'User'  },
 ];
 
-function MyApp() {
+export default function UsersPage() {
   return (
     <DataTable
       data={users}
       columns={columns}
       title="Users"
-      subtitle="Manage your users"
+      subtitle="Manage system users"
       rowKeyField="id"
     />
   );
 }
 ```
 
-### With Selection
+### Row selection
 
 ```tsx
 import { useState } from 'react';
-import { DataTable } from 'next_nice_datatable';
+import { DataTable } from 'next-nice-datatable';
 
-function MyApp() {
-  const [selectedRows, setSelectedRows] = useState<User[]>([]);
+export default function UsersPage() {
+  const [selected, setSelected] = useState<User[]>([]);
 
   return (
     <DataTable
       data={users}
       columns={columns}
       rowKeyField="id"
-      selectedRows={selectedRows}
-      onSelectionChange={setSelectedRows}
+      selectedRows={selected}
+      onSelectionChange={setSelected}
       selectionConfig={{
         enabled: true,
         mode: 'multiple',
         showSelectAll: true,
+        selectAllScope: 'page', // or 'all' to select across all filtered rows
       }}
     />
   );
 }
 ```
 
-### With CRUD Operations
+### CRUD action buttons
 
 ```tsx
-function MyApp() {
-  const handleAdd = () => console.log('Add clicked');
-  const handleView = (row: User) => console.log('View:', row);
-  const handleEdit = (row: User) => console.log('Edit:', row);
-  const handleDelete = (row: User) => console.log('Delete:', row);
-
+export default function UsersPage() {
   return (
     <DataTable
       data={users}
       columns={columns}
+      rowKeyField="id"
       showAdd
       showView
       showEdit
       showDelete
-      onAdd={handleAdd}
-      onView={handleView}
-      onEdit={handleEdit}
-      onDelete={handleDelete}
+      onAdd={()        => console.log('Add')}
+      onView={(row)    => console.log('View', row)}
+      onEdit={(row)    => console.log('Edit', row)}
+      onDelete={(row)  => console.log('Delete', row)}
     />
   );
 }
 ```
 
-### With Export
+### Customise button labels, colours, and tooltips
+
+```tsx
+<DataTable
+  data={users}
+  columns={columns}
+  showAdd
+  showDelete
+  onAdd={handleAdd}
+  onDelete={handleDelete}
+  actionButtons={{
+    addLabel:      'New User',
+    deleteLabel:   'Archive',
+    addColor:      'success',
+    deleteColor:   'warning',
+    addTooltip:    'Create a new user account',
+    deleteTooltip: 'Archive the selected user',
+  }}
+/>
+```
+
+### Export
 
 ```tsx
 <DataTable
   data={users}
   columns={columns}
   exportConfig={{
-    filename: 'users-export',
-    title: 'User List',
-    formats: ['csv', 'excel', 'pdf'],
+    enabled:    true,
+    formats:    ['csv', 'excel', 'pdf', 'word'],
+    filename:   'users-export',
+    title:      'User List',
+    subtitle:   'Generated by Stellarx',
+    buttonLabel: 'Download',          // renames the Export button
+    pdfOrientation: 'landscape',
   }}
 />
 ```
 
-### Server-Side Mode
+### Customise the toolbar
 
 ```tsx
-import { useState } from 'react';
-import type { FetchDataParams } from 'next_nice_datatable';
+<DataTable
+  data={users}
+  columns={columns}
+  toolbarConfig={{
+    showFilter:            true,
+    showAdvancedSearch:    true,
+    showRefresh:           true,
+    showDensityToggle:     true,
+    showColumnVisibility:  true,
+    showExport:            true,
+    // Rename labels
+    refreshLabel:          'Reload data',
+    densityLabel:          'Row height',
+    columnVisibilityLabel: 'Manage columns',
+    advancedSearchLabel:   'Search',
+    columnMenuTitle:       'Show / hide columns',
+  }}
+/>
+```
 
-function MyApp() {
-  const [totalCount, setTotalCount] = useState(0);
+### Server-side mode
 
+```tsx
+import type { FetchDataParams } from 'next-nice-datatable';
+
+export default function UsersPage() {
   const fetchData = async (params: FetchDataParams) => {
-    const response = await fetch('/api/users', {
+    const res = await fetch('/api/users', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(params),
     });
-    const { data, total } = await response.json();
-    setTotalCount(total);
+    const { data, total } = await res.json();
     return { data, totalCount: total };
   };
 
   return (
     <DataTable
       columns={columns}
-      totalCount={totalCount}
-      onFetchData={fetchData}
       rowKeyField="id"
+      onFetchData={fetchData}
+      searchConfig={{
+        enabled: true,
+        searchableFields: [
+          { id: 'name',  label: 'Name'  },
+          { id: 'email', label: 'Email' },
+        ],
+        dialogTitle: 'Search Users',
+      }}
+      onAdvancedSearch={(search) => {
+        // search.criteria, search.matchAll
+      }}
     />
   );
 }
 ```
 
----
+### Custom cell rendering
 
-## 📖 API Reference
+```tsx
+import { Chip, Avatar, Box, Typography } from '@mui/material';
 
-### Main Props
-
-#### Data Props
-
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `data` | `T[]` | `[]` | Data array for client-side mode |
-| `columns` | `DataTableColumn<T>[]` | **required** | Column definitions |
-| `rowKeyField` | `string` | `'id'` | Unique key field for rows |
-| `loading` | `boolean` | `false` | Loading state |
-| `totalCount` | `number` | - | Total count for server-side pagination |
-
-#### Pagination Props
-
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `page` | `number` | `0` | Current page (0-indexed) |
-| `rowsPerPage` | `number` | `12` | Rows per page |
-| `onPageChange` | `(page: number) => void` | - | Page change callback |
-| `onRowsPerPageChange` | `(rows: number) => void` | - | Rows per page change callback |
-| `pagination` | `PaginationConfig` | - | Pagination configuration |
-
-#### Selection Props
-
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `selectedRows` | `T[]` | `[]` | Selected rows array |
-| `onSelectionChange` | `(rows: T[]) => void` | - | Selection change callback |
-| `selectionConfig` | `SelectionConfig` | - | Selection configuration |
-
-#### Action Props
-
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `showAdd` | `boolean` | `false` | Show add button |
-| `showView` | `boolean` | `false` | Show view button |
-| `showEdit` | `boolean` | `false` | Show edit button |
-| `showDelete` | `boolean` | `false` | Show delete button |
-| `onAdd` | `() => void` | - | Add callback |
-| `onView` | `(row: T) => void` | - | View callback |
-| `onEdit` | `(row: T) => void` | - | Edit callback |
-| `onDelete` | `(row: T) => void` | - | Delete callback |
-
-### Column Definition
-
-```typescript
-interface DataTableColumn<T> {
-  id: string;                    // Column ID (matches data key)
-  label: string;                 // Display label
-  minWidth?: number;             // Minimum width (px)
-  maxWidth?: number;             // Maximum width (px)
-  width?: number;                // Fixed width (px)
-  align?: 'left' | 'center' | 'right';
-  sortable?: boolean;            // Enable sorting
-  searchable?: boolean;          // Include in search
-  hidden?: boolean;              // Hidden by default
-  format?: (value: any, row: T, index: number) => ReactNode;
-  exportFormat?: (value: any, row: T, index: number) => string;
-}
+const columns: DataTableColumn<User>[] = [
+  {
+    id: 'name',
+    label: 'Name',
+    format: (value, row) => (
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+        <Avatar sx={{ width: 28, height: 28 }}>{String(value)[0]}</Avatar>
+        <Typography variant="body2">{String(value)}</Typography>
+      </Box>
+    ),
+    exportFormat: (value) => String(value), // plain text for exports
+  },
+  {
+    id: 'status',
+    label: 'Status',
+    format: (value) => (
+      <Chip
+        label={String(value)}
+        color={value === 'active' ? 'success' : 'default'}
+        size="small"
+      />
+    ),
+    exportFormat: (value) => String(value),
+  },
+];
 ```
 
-### Configuration Objects
+### Nested data paths
 
-#### SelectionConfig
+`id` in `DataTableColumn` supports dot-notation to read nested object fields:
 
-```typescript
-interface SelectionConfig {
-  enabled?: boolean;             // Enable selection
-  mode?: 'single' | 'multiple'; // Selection mode
-  showSelectAll?: boolean;       // Show select all checkbox
-  doubleClickSelectsOnly?: boolean; // Double-click behavior
-}
+```tsx
+const columns: DataTableColumn<Order>[] = [
+  { id: 'customer.name',    label: 'Customer'  },
+  { id: 'customer.address.city', label: 'City' },
+  { id: 'amount',           label: 'Amount'    },
+];
 ```
 
-#### ExportConfig
-
-```typescript
-interface ExportConfig {
-  filename?: string;             // Export filename (without extension)
-  title?: string;                // Document title
-  subtitle?: string;             // Document subtitle
-  formats?: ('csv' | 'excel' | 'pdf')[];
-  pdfOrientation?: 'portrait' | 'landscape';
-}
-```
-
-#### PaginationConfig
-
-```typescript
-interface PaginationConfig {
-  defaultRowsPerPage?: number;  // Default rows per page
-  rowsPerPageOptions?: number[]; // Available options
-  showFirstLastButtons?: boolean; // Show first/last buttons
-}
-```
-
----
-
-## 🎨 Styling
-
-### Custom Styling
+### Styling
 
 ```tsx
 <DataTable
@@ -321,255 +298,463 @@ interface PaginationConfig {
   columns={columns}
   styleConfig={{
     stripe: {
-      enabled: true,
-      oddRowColor: '#f9f9f9',
-      evenRowColor: '#ffffff',
+      enabled:       true,
+      oddRowColor:   '#f9f9f9',
+      evenRowColor:  '#ffffff',
     },
-    hoverEffect: true,
-    hoverColor: '#e3f2fd',
-    density: 'comfortable',
-    rounded: true,
-    elevation: true,
+    hoverEffect:            true,
+    hoverColor:             '#e3f2fd',
+    density:                'comfortable', // 'compact' | 'normal' | 'comfortable'
+    rounded:                true,
+    elevation:              true,
+    headerBackgroundColor:  '#fafafa',
+    headerTextColor:        '#1976d2',
+    borderStyle:            'horizontal',  // 'none' | 'horizontal' | 'vertical' | 'all'
   }}
 />
 ```
 
-### Density Control
-
-```tsx
-<DataTable
-  data={users}
-  columns={columns}
-  styleConfig={{
-    density: 'compact' | 'normal' | 'comfortable',
-  }}
-/>
-```
-
----
-
-## 🔍 Advanced Features
-
-### Advanced Search Dialog
-
-```tsx
-<DataTable
-  data={users}
-  columns={columns}
-  searchConfig={{
-    enabled: true,
-    searchableFields: [
-      { id: 'name', label: 'Name' },
-      { id: 'email', label: 'Email' },
-      { id: 'role', label: 'Role' },
-    ],
-    maxCriteria: 5,
-    dialogTitle: 'Search Users',
-  }}
-  onAdvancedSearch={(search) => console.log(search)}
-/>
-```
-
-### Custom Column Formatting
+### Responsive columns
 
 ```tsx
 const columns: DataTableColumn<User>[] = [
-  {
-    id: 'name',
-    label: 'Name',
-    format: (value, row) => (
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-        <Avatar>{value[0]}</Avatar>
-        <Typography>{value}</Typography>
-      </Box>
-    ),
-  },
-  {
-    id: 'status',
-    label: 'Status',
-    format: (value) => (
-      <Chip
-        label={value}
-        color={value === 'active' ? 'success' : 'default'}
-      />
-    ),
-  },
+  { id: 'name',    label: 'Name' },                              // always visible
+  { id: 'email',   label: 'Email',   hiddenOnMobile: true },    // hidden on mobile
+  { id: 'address', label: 'Address', hiddenOnMobile: true, hiddenOnTablet: true }, // desktop only
 ];
-```
-
-### Row Click Handling
-
-```tsx
-<DataTable
-  data={users}
-  columns={columns}
-  onRowClick={(row, index, event) => {
-    console.log('Row clicked:', row);
-  }}
-  onRowDoubleClick={(row, index, event) => {
-    console.log('Row double-clicked:', row);
-  }}
-/>
 ```
 
 ---
 
-## 🔧 TypeScript
+## API reference
 
-The package is fully typed with comprehensive TypeScript definitions:
+### `DataTableProps<T>`
+
+#### Data
+
+| Prop | Type | Default | Description |
+|---|---|---|---|
+| `data` | `T[]` | `[]` | Row data (client-side mode) |
+| `columns` | `DataTableColumn<T>[]` | required | Column definitions |
+| `rowKeyField` | `string` | `'id'` | Field used as unique row key |
+| `loading` | `boolean` | `false` | Shows skeleton rows |
+| `error` | `string \| null` | — | Displays an error alert |
+| `emptyMessage` | `string` | `'No data available'` | Empty-state text |
+| `emptyComponent` | `ReactNode` | — | Custom empty-state component |
+| `totalCount` | `number` | — | Total records (server-side) |
+
+#### Pagination
+
+| Prop | Type | Default | Description |
+|---|---|---|---|
+| `pagination` | `PaginationConfig` | — | Pagination configuration object |
+| `page` | `number` | `0` | Controlled current page (0-indexed) |
+| `rowsPerPage` | `number` | `12` | Controlled rows per page |
+| `onPageChange` | `(page: number) => void` | — |  |
+| `onRowsPerPageChange` | `(rows: number) => void` | — |  |
+
+#### Sorting
+
+| Prop | Type | Default | Description |
+|---|---|---|---|
+| `sortConfig` | `SortConfig` | — | Default sort column / direction |
+| `sort` | `SortState` | — | Controlled sort state |
+| `onSortChange` | `(sort: SortState) => void` | — |  |
+
+#### Selection
+
+| Prop | Type | Default | Description |
+|---|---|---|---|
+| `selectionConfig` | `SelectionConfig` | — | Selection configuration |
+| `selectedRows` | `T[]` | — | Controlled selected rows |
+| `onSelectionChange` | `(rows: T[]) => void` | — |  |
+
+#### Filtering & search
+
+| Prop | Type | Default | Description |
+|---|---|---|---|
+| `clientFilterTerm` | `string` | — | Controlled client-side filter term |
+| `clientFilterConfig` | `ClientFilterConfig` | — | Client filter configuration |
+| `onClientFilterChange` | `(term: string) => void` | — |  |
+| `searchConfig` | `SearchConfig` | — | Advanced search configuration |
+| `advancedSearch` | `AdvancedSearchState` | — | Controlled advanced search state |
+| `onAdvancedSearch` | `(state: AdvancedSearchState) => void` | — |  |
+
+#### Export
+
+| Prop | Type | Default | Description |
+|---|---|---|---|
+| `exportConfig` | `ExportConfig` | — | Export configuration |
+
+#### Action buttons (shorthand)
+
+| Prop | Type | Default | Description |
+|---|---|---|---|
+| `showAdd` | `boolean` | — | Show Add button (requires `onAdd`) |
+| `showView` | `boolean` | — | Show View button (requires `onView`) |
+| `showEdit` | `boolean` | — | Show Edit button (requires `onEdit`) |
+| `showDelete` | `boolean` | — | Show Delete button (requires `onDelete`) |
+| `actionButtons` | `ActionButtonConfig` | — | Full button configuration object |
+| `onAdd` | `() => void` | — |  |
+| `onView` | `(row: T) => void` | — |  |
+| `onEdit` | `(row: T) => void` | — |  |
+| `onDelete` | `(row: T) => void` | — |  |
+
+#### Toolbar
+
+| Prop | Type | Default | Description |
+|---|---|---|---|
+| `title` | `string` | — | Toolbar title |
+| `subtitle` | `string` | — | Toolbar subtitle |
+| `toolbarConfig` | `ToolbarConfig` | — | Full toolbar configuration object |
+| `toolbarActions` | `ReactNode` | — | Custom elements injected into toolbar |
+| `showRefresh` | `boolean` | — | Shorthand for `toolbarConfig.showRefresh` |
+| `showDensityToggle` | `boolean` | — | Shorthand for `toolbarConfig.showDensityToggle` |
+| `showColumnVisibility` | `boolean` | — | Shorthand for `toolbarConfig.showColumnVisibility` |
+| `onRefresh` | `() => void` | — | Refresh callback (also shows Refresh button) |
+
+#### Callbacks & misc
+
+| Prop | Type | Default | Description |
+|---|---|---|---|
+| `onFetchData` | `(params: FetchDataParams) => Promise<{data,totalCount}>` | — | Enables server-side mode |
+| `onRowClick` | `(row, index, event) => void` | — |  |
+| `onRowDoubleClick` | `(row, index, event) => void` | — |  |
+| `id` | `string` | — | HTML `id` on the Paper element |
+| `ariaLabel` | `string` | — | `aria-label` on the `<table>` |
+| `testId` | `string` | — | `data-testid` on the Paper element |
+
+---
+
+### `DataTableColumn<T>`
 
 ```typescript
-import type {
-  DataTable,
-  DataTableColumn,
-  DataTableProps,
-  PaginationConfig,
-  SelectionConfig,
-  ExportConfig,
-  SearchConfig,
-  SortState,
-  FilterState,
-  AdvancedSearchState,
-} from 'next_nice_datatable';
-```
+interface DataTableColumn<T> {
+  id: string;           // column key; supports dot-notation for nested paths
+  label: string;        // header text
 
----
+  // Layout
+  minWidth?: number;
+  maxWidth?: number;
+  width?: number;
+  align?: 'left' | 'center' | 'right';
+  sticky?: 'left' | 'right';
 
-## 📱 Responsive Design
+  // Visibility
+  hidden?: boolean;           // hidden by default (can toggle via column menu)
+  hiddenOnMobile?: boolean;
+  hiddenOnTablet?: boolean;
+  exportable?: boolean;       // false = excluded from exports (default true)
 
-The DataTable automatically adapts to different screen sizes:
+  // Behaviour
+  sortable?: boolean;         // default true
+  searchable?: boolean;       // included in client-side full-text search
+  filterable?: boolean;       // shows per-column filter input
+  filterType?: 'text' | 'number' | 'select' | 'date' | 'boolean';
+  filterOptions?: { value: unknown; label: string }[];
 
-- **Mobile**: Simplified view with essential columns
-- **Tablet**: Medium density with most features
-- **Desktop**: Full features with all columns
-
-Control responsive behavior:
-
-```tsx
-const columns: DataTableColumn<User>[] = [
-  {
-    id: 'name',
-    label: 'Name',
-    // Always show
-  },
-  {
-    id: 'email',
-    label: 'Email',
-    hiddenOnMobile: true, // Hide on mobile
-  },
-  {
-    id: 'details',
-    label: 'Details',
-    hiddenOnMobile: true, // Hide on mobile
-    hiddenOnTablet: true, // Hide on tablet
-  },
-];
-```
-
----
-
-## ⚡ Performance
-
-### Optimization Tips
-
-1. **Use `rowKeyField`** for efficient rendering
-2. **Memoize callbacks** with `useCallback`
-3. **Lazy load data** with server-side mode
-4. **Limit visible columns** on mobile
-5. **Use pagination** for large datasets
-
-```tsx
-import { useCallback, useMemo } from 'react';
-
-function MyApp() {
-  // Memoize columns
-  const columns = useMemo(() => [...], []);
-
-  // Memoize callbacks
-  const handleView = useCallback((row) => {
-    // ...
-  }, []);
-
-  return (
-    <DataTable
-      data={users}
-      columns={columns}
-      onView={handleView}
-      rowKeyField="id" // Important for performance
-    />
-  );
+  // Rendering
+  format?: (value: unknown, row: T, rowIndex: number) => ReactNode;
+  exportFormat?: (value: unknown, row: T, rowIndex: number) => string;
+  renderHeader?: (column: DataTableColumn<T>) => ReactNode;
+  tooltip?: string;     // shown as a tooltip on the column header
+  className?: string;
 }
 ```
 
 ---
 
-## 🧪 Testing
+### `SelectionConfig`
 
-The component is designed to be easily testable:
+```typescript
+interface SelectionConfig {
+  enabled?: boolean;
+  mode?: 'single' | 'multiple';
+  showSelectAll?: boolean;
+  doubleClickSelectsOnly?: boolean;
+  /**
+   * 'page' (default) — select-all covers only the current page.
+   * 'all'            — select-all covers every row in the filtered dataset.
+   */
+  selectAllScope?: 'page' | 'all';
+}
+```
+
+---
+
+### `ExportConfig`
+
+```typescript
+interface ExportConfig {
+  enabled?: boolean;
+  formats?: ('csv' | 'excel' | 'pdf' | 'word')[];
+  filename?: string;           // base name without extension
+  title?: string;              // document heading
+  subtitle?: string;
+  includeHeaders?: boolean;    // default true
+  visibleColumnsOnly?: boolean;
+  filteredDataOnly?: boolean;
+  pdfOrientation?: 'portrait' | 'landscape';
+  pdfPageSize?: 'a4' | 'letter' | 'legal';
+  buttonLabel?: string;        // renames the Export button (default: "Export")
+  /**
+   * Plain text injected as a header above the table in PDF / Word.
+   * HTML-escaped by default. Set allowUnsafeHtml: true only for
+   * server-controlled, trusted values.
+   */
+  customHeader?: string;
+  customFooter?: string;
+  allowUnsafeHtml?: boolean;   // default false
+}
+```
+
+---
+
+### `ToolbarConfig`
+
+```typescript
+interface ToolbarConfig {
+  showFilter?: boolean;               // client-side filter input
+  showAdvancedSearch?: boolean;       // advanced search button
+  showRefresh?: boolean;
+  showDensityToggle?: boolean;
+  showColumnVisibility?: boolean;
+  showExport?: boolean;
+  showTitle?: boolean;
+
+  // Custom labels / tooltips
+  refreshLabel?: string;              // default "Refresh"
+  densityLabel?: string;              // default "Table density"
+  columnVisibilityLabel?: string;     // default "Show / hide columns"
+  advancedSearchLabel?: string;       // default "Advanced Search"
+  columnMenuTitle?: string;           // default "Toggle Columns"
+}
+```
+
+---
+
+### `ActionButtonConfig`
+
+```typescript
+interface ActionButtonConfig {
+  showAdd?: boolean;
+  showView?: boolean;
+  showEdit?: boolean;
+  showDelete?: boolean;
+
+  addEnabled?: boolean;
+  viewEnabled?: boolean;
+  editEnabled?: boolean;
+  deleteEnabled?: boolean;
+
+  // Labels (text shown on the button)
+  addLabel?: string;      // default "Add"
+  viewLabel?: string;     // default "View"
+  editLabel?: string;     // default "Edit"
+  deleteLabel?: string;   // default "Delete"
+
+  // Tooltips (hover text)
+  addTooltip?: string;
+  viewTooltip?: string;
+  editTooltip?: string;
+  deleteTooltip?: string;
+
+  // MUI colours
+  addColor?: 'primary' | 'secondary' | 'success' | 'error' | 'warning' | 'info' | 'inherit';
+  viewColor?: 'primary' | 'secondary' | 'success' | 'error' | 'warning' | 'info' | 'inherit';
+  editColor?: 'primary' | 'secondary' | 'success' | 'error' | 'warning' | 'info' | 'inherit';
+  deleteColor?: 'primary' | 'secondary' | 'success' | 'error' | 'warning' | 'info' | 'inherit';
+}
+```
+
+---
+
+### `PaginationConfig`
+
+```typescript
+interface PaginationConfig {
+  defaultRowsPerPage?: number;        // default 12
+  rowsPerPageOptions?: number[];      // default [5, 10, 12, 25, 50, 100]
+  showRowsPerPageSelector?: boolean;
+  showFirstLastButtons?: boolean;
+  rowsPerPageLabel?: string;          // label before the selector
+  position?: 'top' | 'bottom' | 'both';
+}
+```
+
+---
+
+### `SearchConfig`
+
+```typescript
+interface SearchConfig {
+  enabled?: boolean;
+  searchableFields?: { id: string; label: string }[];
+  dialogTitle?: string;
+  defaultSearchField?: string;
+  maxCriteria?: number;
+  debounceMs?: number;
+  placeholder?: string;
+}
+```
+
+---
+
+### `FetchDataParams` (server-side)
+
+```typescript
+interface FetchDataParams {
+  page: number;
+  rowsPerPage: number;
+  sort: SortState;
+  filters: FilterState;
+  advancedSearch?: AdvancedSearchState;
+}
+
+interface AdvancedSearchState {
+  criteria: Array<{
+    id: string;
+    field: string;
+    value: string;
+    operator: 'CONTAINS' | 'EQUALS' | 'STARTS_WITH' | 'ENDS_WITH';
+  }>;
+  matchAll: boolean;
+}
+```
+
+---
+
+### Utility exports
+
+```typescript
+import {
+  exportData,        // export any data programmatically
+  exportToCsv,
+  exportToExcel,
+  exportToPdf,
+  exportToWord,
+  getExportFormatLabel,
+  getNestedValue,    // prototype-pollution-safe path reader
+  formatValueForExport,
+  generateFilename,
+} from 'next-nice-datatable';
+```
+
+---
+
+## Security
+
+### Prototype pollution
+
+`getNestedValue` — used internally for dot-notation column paths — blocks the path segments `__proto__`, `constructor`, and `prototype`. Passing a malicious path such as `__proto__.polluted` returns `undefined` without traversing the prototype chain.
+
+### XSS in exports
+
+Custom strings injected into PDF and Word document headers / footers are **HTML-escaped by default**. This means a `customHeader` value of `<script>alert(1)</script>` will appear as the literal text `<script>alert(1)</script>` in the document, not be executed.
+
+To insert actual HTML markup (e.g. a formatted paragraph), set `allowUnsafeHtml: true` in `ExportConfig` — but only when the value originates from a fully trusted, server-controlled source, never from user input.
+
+---
+
+## Performance tips
+
+1. Always provide `rowKeyField` — it enables React's keyed reconciliation.
+2. Memoize `columns` with `useMemo` — prevents unnecessary re-renders.
+3. Memoize callbacks (`onView`, `onEdit`, …) with `useCallback`.
+4. Use server-side mode with `onFetchData` for datasets larger than ~10 000 rows.
+5. Use `hiddenOnMobile` to reduce DOM nodes on small screens.
+
+---
+
+## TypeScript — full type import
+
+```typescript
+import type {
+  DataTableProps,
+  DataTableColumn,
+  DataTableState,
+  PaginationConfig,
+  PaginationState,
+  SortState,
+  SortConfig,
+  FilterState,
+  FilterConfig,
+  ClientFilterConfig,
+  SelectionConfig,
+  ExportConfig,
+  ExportFormat,
+  StyleConfig,
+  ToolbarConfig,
+  ActionButtonConfig,
+  SearchConfig,
+  SearchField,
+  SearchCriteria,
+  SearchOperator,
+  AdvancedSearchState,
+  FetchDataParams,
+  OnFetchDataCallback,
+  OnSelectionChangeCallback,
+  OnRowClickCallback,
+  OnRowDoubleClickCallback,
+  OnAddCallback,
+  OnEditCallback,
+  OnDeleteCallback,
+  OnViewCallback,
+} from 'next-nice-datatable';
+```
+
+---
+
+## Testing
 
 ```tsx
-import { render, screen, fireEvent } from '@testing-library/react';
-import { DataTable } from 'next_nice_datatable';
+import { render, screen } from '@testing-library/react';
+import { DataTable } from 'next-nice-datatable';
 
 test('renders table with data', () => {
   const columns = [{ id: 'name', label: 'Name' }];
   const data = [{ id: 1, name: 'John' }];
 
-  render(<DataTable data={data} columns={columns} />);
+  render(<DataTable data={data} columns={columns} rowKeyField="id" />);
 
   expect(screen.getByText('John')).toBeInTheDocument();
 });
 ```
 
----
+Use `testId` to target the table container:
 
-## 🤝 Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+```tsx
+<DataTable testId="users-table" ... />
+// screen.getByTestId('users-table')
+```
 
 ---
 
-## 📄 License
+## Contributing
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
----
-
-## 🙏 Acknowledgments
-
-- Built with [Material-UI](https://mui.com/)
-- Export functionality powered by [jsPDF](https://github.com/parallax/jsPDF) and [XLSX](https://github.com/SheetJS/sheetjs)
-- Created by [Stellarx Team](https://github.com/stellarx57)
+Contributions are welcome — please see [CONTRIBUTING.md](CONTRIBUTING.md) for setup instructions, coding conventions, and the pull-request process.
 
 ---
 
-## 📞 Support
+## Changelog
 
-- 📧 Email: support@stellarx.com
-- 🐛 Issues: [GitHub Issues](https://github.com/stellarx57/next_nice_datatable/issues)
-- 💬 Discussions: [GitHub Discussions](https://github.com/stellarx57/next_nice_datatable/discussions)
+See [CHANGELOG.md](CHANGELOG.md) for the full version history.
 
 ---
 
-## 🗺️ Roadmap
+## License
 
-- [ ] Inline editing
-- [ ] Column resizing with drag
-- [ ] Row reordering with drag & drop
-- [ ] Virtual scrolling for large datasets
-- [ ] Column grouping
-- [ ] Nested/tree data support
-- [ ] Mobile-optimized views
-- [ ] Dark mode support
-- [ ] Accessibility improvements
+MIT — see [LICENSE](LICENSE).
 
 ---
 
-Made with ❤️ by [Stellarx Team](https://github.com/stellarx57)
+## Acknowledgements
 
+- Table UI: [Material-UI](https://mui.com/)
+- PDF export: [jsPDF](https://github.com/parallax/jsPDF) + [jspdf-autotable](https://github.com/simonbengtsson/jsPDF-AutoTable)
+- Excel export: [SheetJS / xlsx](https://github.com/SheetJS/sheetjs)
+- Created and maintained by [Stellarx Team](https://github.com/stellarx57)
+
+---
+
+Made with care by [Stellarx Team](https://github.com/stellarx57)
