@@ -1,6 +1,6 @@
 {
   "name": "next-nice-datatable",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "A comprehensive, feature-rich, security-hardened DataTable component for Next.js and React applications with Material-UI",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",

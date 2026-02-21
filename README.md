@@ -1,6 +1,6 @@
 # next-nice-datatable
 
-A comprehensive, feature-rich, **security-hardened** DataTable component for Next.js and React applications built on Material-UI. Fully typed with TypeScript, production-ready, and extensively customizable.
+A comprehensive, feature-rich DataTable component for Next.js and React applications built on Material-UI. Fully typed with TypeScript, production-ready, and extensively customizable.
 
 [![npm version](https://img.shields.io/npm/v/next-nice-datatable.svg)](https://www.npmjs.com/package/next-nice-datatable)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -38,10 +38,6 @@ A comprehensive, feature-rich, **security-hardened** DataTable component for Nex
 - **Column visibility menu title** — configurable string
 - **Export button label** — configurable string
 
-### Security (hardened in v2)
-- **Prototype-pollution protection** — `getNestedValue` blocks `__proto__`, `constructor`, and `prototype` path segments
-- **XSS-safe exports** — `customHeader`, `customFooter`, and document titles are HTML-escaped by default in all export formats; raw HTML is only permitted when `allowUnsafeHtml: true` is explicitly set (opt-in, for trusted server values only)
-- **Null-safe escaping** — `escapeHtml` safely converts `null` / `undefined` to an empty string instead of the literal text `"null"`
 
 ---
 
